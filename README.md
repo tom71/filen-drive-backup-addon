@@ -8,6 +8,11 @@ A complete and easy way to back up Home Assistant to Filen.io.
 
 This is for you if you want to quickly set up a backup strategy without much fuss. It doesn't require much familiarity with Home Assistant, its architecture, or Filen.io. Detailed install instructions are provided below but you can just add this repo, click install and open the Web UI. It will tell you what to do and only takes a few simple clicks.  [Detailed install instructions are below](#detailed-install-instructions) if that doesn't seem clear.
 
+### Acknowledgement
+
+Special thanks to the original project by sabeechen: [hassio-google-drive-backup](https://github.com/sabeechen/hassio-google-drive-backup).
+This repository builds on that work and adapts it for Filen.io.
+
 ### Features Overview
 
 - Creates backups on a configurable schedule.

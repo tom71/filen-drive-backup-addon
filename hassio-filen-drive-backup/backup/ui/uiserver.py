@@ -559,12 +559,24 @@ class UiServer(Trigger, Startable):
         self._haupdater.triggerRefresh()
         if self.config.get(Setting.SPECIFY_BACKUP_FOLDER) and backup_folder_id is not None and len(backup_folder_id):
             await self.folder_finder.save(backup_folder_id)
+        await self._ensureFilenBackupFolder()
         if trigger:
             self.trigger()
         return {
             'message': 'Settings saved',
             'reload_page': self.config.get(Setting.ENABLE_DRIVE_UPLOAD) != old_drive_option
         }
+
+    async def _ensureFilenBackupFolder(self) -> None:
+        api_key = self.config.get(Setting.FILEN_API_KEY)
+        if not api_key:
+            return
+        try:
+            await self.folder_finder.get(api_key)
+        except Exception as e:
+            # Best-effort: the folder will also be resolved/created during sync.
+            logger.debug("Failed to pre-create Filen backup folder after saving settings")
+            logger.debug(logger.formatException(e))
 
     async def waitForUpload(self):
         await self._upload_event.wait()
