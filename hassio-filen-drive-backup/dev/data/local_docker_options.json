@@ -1,0 +1,21 @@
+{
+    "filen_api_key": "PASTE_YOUR_API_KEY_HERE",
+    "max_backups_in_ha": 4,
+    "max_backups_in_filen": 4,
+    "days_between_backups": 3,
+    "enable_filen_upload": true,
+    "use_ssl": false,
+    "verbose": true,
+
+    "supervisor_url": "http://localhost:56153/",
+    "hassio_header": "local_test_token",
+
+    "backup_directory_path": "/backup",
+    "retained_file_path": "/data/retained.json",
+    "data_cache_file_path": "/data/data_cache.json",
+    "id_file_path": "/data/id.json",
+    "ingress_port": 8099,
+    "port": 1627,
+
+    "console_log_level": "DEBUG"
+}

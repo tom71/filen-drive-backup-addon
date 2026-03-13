@@ -1,0 +1,48 @@
+version: "3.8"
+
+# Local test environment for hassio-filen-drive-backup.
+#
+# Before starting:
+#   1. Get your Filen API key:
+#        python3 hassio-filen-drive-backup/dev/get_filen_api_key.py
+#   2. Paste the key into:
+#        hassio-filen-drive-backup/dev/data/local_docker_options.json
+#
+# Optional — HA Supervisor mock (provides fake backups / HA API):
+#   Run in a second terminal from the workspace root:
+#        python3 -m hassio-filen-drive-backup.dev.simulationserver
+#   If you skip this, the add-on will show errors for HA-specific features
+#   (backup creation, HA config) but Filen connectivity can still be verified.
+#
+# Start:
+#   docker compose up --build
+#
+# Web UI:
+#   http://localhost:1627
+
+services:
+  filen-backup:
+    build:
+      context: ./hassio-filen-drive-backup
+      args:
+        # Use the same base image as the HA Supervisor builder (Alpine + shell).
+        # Switch to aarch64-base when testing on ARM.
+        BUILD_FROM: ghcr.io/home-assistant/amd64-base:latest
+    container_name: filen-backup-local
+    # host networking lets the addon reach the supervisor mock (port 56153)
+    # that runs on the Docker host, and exposes port 1627 directly.
+    network_mode: host
+    volumes:
+      # Add-on options (copy & edit local_docker_options.json)
+      - ./hassio-filen-drive-backup/dev/data/local_docker_options.json:/data/options.json:ro
+      # Persistent state between restarts
+      - filen-backup-data:/data
+      # Backup staging area (mirrors what Supervisor mounts at /backup)
+      - ./hassio-filen-drive-backup/dev/backup:/backup
+    environment:
+      # Tells the add-on that a Supervisor token exists (used for URL selection)
+      SUPERVISOR_TOKEN: "local_test_token"
+    restart: unless-stopped
+
+volumes:
+  filen-backup-data:
