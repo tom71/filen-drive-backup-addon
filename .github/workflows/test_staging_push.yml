@@ -31,11 +31,25 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Pre-pull Home Assistant builder image (with retry)
+      run: |
+          set -e
+          for i in 1 2 3 4 5 6; do
+            if docker pull ghcr.io/home-assistant/amd64-builder:latest; then
+              echo "Builder image pulled successfully on attempt ${i}."
+              exit 0
+            fi
+            sleep $((i * 20))
+          done
+          echo "Failed to pull builder image after multiple attempts."
+          exit 1
+
     - name: Publish Staging Addon image (attempt 1)
       id: publish_attempt_1
       continue-on-error: true
       uses: home-assistant/builder@master
       with:
+        pull: "false"
         args: |
           --amd64 \
           --aarch64 \
@@ -52,6 +66,7 @@ jobs:
       continue-on-error: true
       uses: home-assistant/builder@master
       with:
+        pull: "false"
         args: |
           --amd64 \
           --aarch64 \
@@ -67,6 +82,7 @@ jobs:
       if: ${{ steps.publish_attempt_1.outcome == 'failure' && steps.publish_attempt_2.outcome == 'failure' }}
       uses: home-assistant/builder@master
       with:
+        pull: "false"
         args: |
           --amd64 \
           --aarch64 \
