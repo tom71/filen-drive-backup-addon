@@ -241,14 +241,14 @@ Yes. This add-on is designed to use your own Filen API key directly. Open add-on
 
 ### How do I get a Filen API key?
 
-1. Sign in to your Filen account in the web app.
-2. Open your account settings and find the API Keys section.
-3. Create a new API key for Home Assistant backups.
-4. Copy the key immediately (some UIs only show it once).
-5. In Home Assistant, open add-on Configuration and set `filen_api_key` to that value.
-6. Save and restart the add-on.
+According to the official Filen API docs, the API key is returned by the authentication flow after login.
 
-If the menu labels in Filen change, search settings for `API key` or `Developer`.
+1. Use Filen's official authentication flow (or official SDK) as documented here: https://docs.filen.io/docs/api/guides/authentication
+2. Complete login and read the returned API key from the `/v3/login` response.
+3. In Home Assistant, open add-on Configuration and set `filen_api_key` to that value.
+4. Save and restart the add-on.
+
+If Filen provides an API key directly in their account UI, you can use that value as well.
 
 ### Can I permanently save a backup so it doesn't get cleaned up?
 

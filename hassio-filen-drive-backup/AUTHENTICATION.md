@@ -3,9 +3,13 @@
 This add-on authenticates against Filen.io using an API key.
 
 ## How it works
-1. You create a Filen.io API key in your Filen account.
-2. You paste that API key into the add-on UI.
-3. The add-on stores the key locally in Home Assistant and uses it for Filen gateway requests.
+1. You authenticate using Filen's official API authentication flow.
+2. The API key is returned from `/v3/login`.
+3. You paste that key into the add-on UI.
+4. The add-on stores the key locally in Home Assistant and uses it for Filen gateway requests.
+
+Official reference:
+https://docs.filen.io/docs/api/guides/authentication
 
 ## Security model
 - The add-on never needs your Filen account password.

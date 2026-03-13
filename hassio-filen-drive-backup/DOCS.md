@@ -81,7 +81,12 @@ delete_after_upload: true
 
 ### Option: `filen_api_key`
 
-API key used to authenticate this add-on with Filen. Create it in your Filen account settings under API Keys (or Developer), then paste it into add-on configuration.
+API key used to authenticate this add-on with Filen.
+
+Per Filen API docs, this key is returned by the authentication login flow (`/v3/login`):
+https://docs.filen.io/docs/api/guides/authentication
+
+Paste that API key into add-on configuration.
 
 ### Option: `max_backups_in_ha` (default: 4)
 

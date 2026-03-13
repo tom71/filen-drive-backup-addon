@@ -11,15 +11,17 @@ To connect the add-on, provide your own Filen API key:
 
 ## Where to get your API key
 
-Use these steps:
+Use Filen's official authentication flow described here:
+https://docs.filen.io/docs/api/guides/authentication
 
-1. Sign in to Filen in your browser.
-2. Open account settings.
-3. Find `API Keys` (sometimes listed under `Developer`).
-4. Create a new key for Home Assistant backup usage.
-5. Copy the key.
+In short:
 
-Then paste it into Home Assistant add-on configuration as `filen_api_key` and restart the add-on.
+1. Authenticate via Filen API flow.
+2. Read the API key returned by `/v3/login`.
+3. Paste it into Home Assistant add-on configuration as `filen_api_key`.
+4. Restart the add-on.
+
+If Filen exposes an API key directly in account settings, that key can also be used.
 
 ## Security notes
 
