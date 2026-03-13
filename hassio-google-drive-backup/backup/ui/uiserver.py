@@ -157,6 +157,12 @@ class UiServer(Trigger, Startable):
             "version": VERSION
         }))
         status['choose_folder_url'] = str(choose_url)
+        status['authenticate_url_filen'] = str(URL(self.config.get(Setting.AUTHORIZATION_HOST)).with_path("/filen/authenticate"))
+        status['choose_folder_url_filen'] = str(URL(self.config.get(Setting.AUTHORIZATION_HOST)).with_path('/filen/picker').with_query({
+            "bg": self.config.get(Setting.BACKGROUND_COLOR),
+            "ac": self.config.get(Setting.ACCENT_COLOR),
+            "version": VERSION
+        }))
         status['dns_info'] = self._global_info.getDnsInfo()
         status['enable_filen_upload'] = self.config.get(
             Setting.ENABLE_FILEN_UPLOAD)
@@ -381,14 +387,14 @@ class UiServer(Trigger, Startable):
             resp.content_type = 'text/html'
         else:
             resp.content_type = 'text/plain'
-            resp.headers['Content-Disposition'] = 'attachment; filename="home-assistant-google-drive-backup.log"'
+            resp.headers['Content-Disposition'] = 'attachment; filename="home-assistant-filen-backup.log"'
 
         await resp.prepare(request)
 
         def content():
             html = format == "colored"
             if format == "html":
-                yield "<html><head><title>Home Assistant Google Drive Backup Log</title></head><body><pre>\n"
+                yield "<html><head><title>Home Assistant Filen.io Backup Log</title></head><body><pre>\n"
             for line in getHistory(self.last_log_index, html):
                 self.last_log_index = line[0]
                 if line:

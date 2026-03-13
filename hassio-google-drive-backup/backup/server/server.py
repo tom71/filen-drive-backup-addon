@@ -95,7 +95,7 @@ class Server():
                     raise
                 self.logError(request, e)
                 content = "The server encountered an error while processing this request: " + str(e) + "<br/>"
-                content += "Please <a href='https://github.com/sabeechen/hassio-google-drive-backup/issues'>file an issue</a> on Home Assistant Google Backup's GitHub page so I'm aware of this problem or attempt authorizing with Google Drive again."
+                content += "Please <a href='https://github.com/sabeechen/hassio-filen-drive-backup/issues'>file an issue</a> on Home Assistant Filen Backup's GitHub page so I'm aware of this problem or attempt authorizing again."
                 return Response(status=500, body=content)
         else:
             raise HTTPBadRequest()
@@ -175,6 +175,10 @@ class Server():
         app.add_routes([
             static("/static/" + VERSION, path, append_version=True),
             static("/drive/static/" + VERSION, path, append_version=True),
+            static("/filen/static/" + VERSION, path, append_version=True),
+            get("/filen/picker", self.picker),
+            get("/filen/authenticate", self.authorize),
+            post("/filen/refresh", self.refresh),
             get("/drive/picker", self.picker),
             get("/", self.index),
             get("/drive/authorize", self.authorize),

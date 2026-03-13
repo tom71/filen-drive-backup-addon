@@ -2,7 +2,7 @@
 
 ## Installation
 
-To install the add-on, first follow the installation steps from the [README on GitHub](https://github.com/sabeechen/hassio-google-drive-backup#installation).
+To install the add-on, first follow the installation steps from the [README on GitHub](https://github.com/sabeechen/hassio-filen-drive-backup#installation).
 
 ## Configuration
 
@@ -17,8 +17,8 @@ Don't use this directly, the addon has a lot of configuration options that most 
 # Keep 10 backups in Home Assistant
 max_backups_in_ha: 10
 
-# Keep 10 backups in Google Drive
-max_backups_in_google_drive: 10
+# Keep 10 backups in Filen.io
+max_backups_in_filen_io: 10
 
 # Create backups in Home Assistant on network storage 
 backup_location: my_nfs_share
@@ -38,10 +38,10 @@ days_between_backups: 3
 # Create backups at 1:30pm exactly
 backup_time_of_day: "13:30"
 
-# Delete backups from Home Assistant immediately after uploading them to Google Drive
+# Delete backups from Home Assistant immediately after uploading them to Filen.io
 delete_after_upload: True
 
-# Manually specify the backup folder used in Google Drive
+# Manually specify the backup folder used in Filen.io
 specify_backup_folder: true
 
 # Use a dark and red theme
@@ -72,7 +72,7 @@ expose_extra_server: true
 # Allow sending error reports
 send_error_reports: true
 
-# Delete backups after they're uploaded to Google Drive
+# Delete backups after they're uploaded to Filen.io
 delete_after_upload: true
 ```
 
@@ -80,15 +80,15 @@ delete_after_upload: true
 
 The number of backups the add-on will allow Home Assistant to store locally before old ones are deleted.
 
-### Option: `max_backups_in_google_drive` (default: 4)
+### Option: `max_backups_in_filen_io` (default: 4)
 
-The number of backups the add-on will keep in Google Drive before old ones are deleted. Google Drive gives you 15GB of free storage (at the time of writing) so plan accordingly if you know how big your backups are.
+The number of backups the add-on will keep in Filen.io before old ones are deleted. Filen.io gives you 15GB of free storage (at the time of writing) so plan accordingly if you know how big your backups are.
 
 ### Option: `backup_location` (default: None)
-The place where backups are created in Home Assistant before uploading to Google Drive.  Can be "local-disk" or the name of any backup network storage you've configured in Home Assistant.  Leave unspecified (the default) to have backups created in whatever Home Assistant uses as the default backup location. 
+The place where backups are created in Home Assistant before uploading to Filen.io.  Can be "local-disk" or the name of any backup network storage you've configured in Home Assistant.  Leave unspecified (the default) to have backups created in whatever Home Assistant uses as the default backup location. 
 
 ### Option: `ignore_other_backups` (default: False)
-Make the addon ignore any backups it didn't directly create.  Any backup already uploaded to Google Drive will not be ignored until you delete it from Google Drive.
+Make the addon ignore any backups it didn't directly create.  Any backup already uploaded to Filen.io will not be ignored until you delete it from Filen.io.
 
 ### Option: `ignore_upgrade_backups` (default: False)
 Ignores backups that look like they were automatically created from updating an add-on or Home Assistant itself.  This will make the add-on ignore any partial backup that has only one add-on or folder in it.
@@ -104,11 +104,11 @@ The time of day (local time) that new backups should be created in 24-hour ("HH:
 
 ### Options: `delete_after_upload` (default: False)
 
-Deletes backups from Home Assistant immediately after uploading them to Google Drive.  This is useful if you have very limited space inside Home Assistant since you only need to have available space for a single backup locally.
+Deletes backups from Home Assistant immediately after uploading them to Filen.io.  This is useful if you have very limited space inside Home Assistant since you only need to have available space for a single backup locally.
 
 ### Option: `specify_backup_folder` (default: False)
 
-When true, you must select the folder in Google Drive where backups are stored. Once you turn this on, restart the add-on and visit the Web-UI to be prompted to select the backup folder.
+When true, you must select the folder in Filen.io where backups are stored. Once you turn this on, restart the add-on and visit the Web-UI to be prompted to select the backup folder.
 
 ### Option: `background_color` and `accent_color`
 
@@ -132,11 +132,11 @@ When set, backups are created with a password. You can use a value from your sec
 
 ### Option: `backup_name` (default: "{type} Backup {year}-{month}-{day} {hr24}:{min}:{sec}")
 
-Sets the name for new backups. Variable parameters of the form `{variable_name}` can be used to modify the name to your liking. A list of available variables is available [here](https://github.com/sabeechen/hassio-google-drive-backup#can-i-give-backups-a-different-name).
+Sets the name for new backups. Variable parameters of the form `{variable_name}` can be used to modify the name to your liking. A list of available variables is available [here](https://github.com/sabeechen/hassio-filen-drive-backup#can-i-give-backups-a-different-name).
 
 ### Option: `generational_*`
 
-When set, older backups will be kept longer using a [generational backup scheme](https://en.wikipedia.org/wiki/Backup_rotation_scheme). See the [question here](https://github.com/sabeechen/hassio-google-drive-backup#can-i-keep-older-backups-for-longer) for configuration options.
+When set, older backups will be kept longer using a [generational backup scheme](https://en.wikipedia.org/wiki/Backup_rotation_scheme). See the [question here](https://github.com/sabeechen/hassio-filen-drive-backup#can-i-keep-older-backups-for-longer) for configuration options.
 
 ### Option: `exclude_folders`
 
@@ -150,15 +150,15 @@ _Note_: Folders and add-ons must be identified by their "slug" name. It is recom
 
 ### Option: `enable_backup_stale_sensor` (default: True)
 
-When false, the add-on will not publish the [binary_sensor.backups_stale](https://github.com/sabeechen/hassio-google-drive-backup#how-will-i-know-this-will-be-there-when-i-need-it) stale sensor.
+When false, the add-on will not publish the [binary_sensor.backups_stale](https://github.com/sabeechen/hassio-filen-drive-backup#how-will-i-know-this-will-be-there-when-i-need-it) stale sensor.
 
 ### Option: `enable_backup_state_sensor` (default: True)
 
-When false, the add-on will not publish the [sensor.backup_state](https://github.com/sabeechen/hassio-google-drive-backup#how-will-i-know-this-will-be-there-when-i-need-it) sensor.
+When false, the add-on will not publish the [sensor.backup_state](https://github.com/sabeechen/hassio-filen-drive-backup#how-will-i-know-this-will-be-there-when-i-need-it) sensor.
 
 ### Option: `notify_for_stale_backups` (default: True)
 
-When false, the add-on will send a [persistent notification](https://github.com/sabeechen/hassio-google-drive-backup#how-will-i-know-this-will-be-there-when-i-need-it) in Home Assistant when backups are stale.
+When false, the add-on will send a [persistent notification](https://github.com/sabeechen/hassio-filen-drive-backup#how-will-i-know-this-will-be-there-when-i-need-it) in Home Assistant when backups are stale.
 
 ---
 
@@ -198,8 +198,8 @@ When true, the text of unexpected errors will be sent to a database maintained b
 
 #### Option: `delete_after_upload` (default: False)
 
-When true, backups are always deleted after they've been uploaded to Google Drive.  'max_backups_in_ha' is ignored when this option is True, since a backup is always deleted from Home Assistant after it gets uploaded to Google Drive.  Some find this useful if they only have enough space on their Home Assistant machine for one backup.
+When true, backups are always deleted after they've been uploaded to Filen.io.  'max_backups_in_ha' is ignored when this option is True, since a backup is always deleted from Home Assistant after it gets uploaded to Filen.io.  Some find this useful if they only have enough space on their Home Assistant machine for one backup.
 
 ## FAQ
 
-Read the [FAQ on GitHub](https://github.com/sabeechen/hassio-google-drive-backup#faq).
+Read the [FAQ on GitHub](https://github.com/sabeechen/hassio-filen-drive-backup#faq).

@@ -1,4 +1,5 @@
 from typing import Any
+from aiohttp import ContentTypeError
 
 from injector import singleton, inject
 
@@ -55,7 +56,7 @@ class FilenRequests():
             headers=self._headers(api_key),
             data=data,
         )
-        return await response.json()
+        return await self._safe_json(response)
 
     async def complete_upload(self, api_key: str, payload: dict[str, Any]) -> dict[str, Any]:
         response = await self.requester.request(
@@ -64,7 +65,7 @@ class FilenRequests():
             headers=self._headers(api_key),
             json=payload,
         )
-        return await response.json()
+        return await self._safe_json(response)
 
     async def delete_file(self, api_key: str, uuid: str) -> dict[str, Any]:
         response = await self.requester.request(
@@ -89,3 +90,9 @@ class FilenRequests():
 
     def _headers(self, api_key: str) -> dict[str, str]:
         return {"Authorization": api_key}
+
+    async def _safe_json(self, response) -> dict[str, Any]:
+        try:
+            return await response.json()
+        except (ContentTypeError, ValueError):
+            return {}

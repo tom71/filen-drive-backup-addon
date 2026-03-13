@@ -1,10 +1,10 @@
 {
-  "name": "Home Assistant Google Drive Backup",
+  "name": "Home Assistant Filen.io Backup",
   "version": "0.112.1",
-  "slug": "hassio_google_drive_backup",
-  "description": "Automatically manage backups between Home Assistant and Google Drive",
+  "slug": "hassio_filen_drive_backup",
+  "description": "Automatically manage backups between Home Assistant and Filen.io",
   "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
-  "url": "https://github.com/sabeechen/hassio-google-drive-backup",
+  "url": "https://github.com/sabeechen/hassio-filen-drive-backup",
   "homeassistant_api": true,
   "hassio_api": true,
   "hassio_role": "admin",
@@ -16,11 +16,15 @@
   "options": {
     "max_backups_in_ha": 4,
     "max_backups_in_google_drive": 4,
+    "max_backups_in_filen": 4,
+    "enable_filen_upload": true,
+    "filen_api_key": "",
     "days_between_backups": 3
   },
   "schema": {
     "max_backups_in_ha": "int(0,)?",
     "max_backups_in_google_drive": "int(0,)?",
+    "max_backups_in_filen": "int(0,)?",
     "days_between_backups": "float(0,)?",
     "ignore_other_backups": "bool?",
     "ignore_upgrade_backups": "bool?",
@@ -68,6 +72,9 @@
     "google_drive_timeout_seconds": "float(1,)?",
     "alternate_dns_servers": "match(^([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})(,[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})*$)?",
     "enable_drive_upload": "bool?",
+    "enable_filen_upload": "bool?",
+    "filen_api_key": "str?",
+    "filen_gateway_url": "url?",
     "call_backup_snapshot": "bool?",
 
     "background_color": "match(^(#[0-9ABCDEFabcdef]{6}|)$)?",
@@ -106,5 +113,5 @@
   "ports_description": {
     "1627/tcp": "Direct access to the add-on without ingress.  Must be enabled in the settings, see 'expose_extra_server'."
   },
-  "image": "ghcr.io/sabeechen/hassio-google-drive-backup-{arch}"
+  "image": "ghcr.io/sabeechen/hassio-filen-drive-backup-{arch}"
 }

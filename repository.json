@@ -1,5 +1,5 @@
 {
-    "name": "Home Assistant Google Drive Backup Repository",
-    "url": "https://github.com/sabeechen/hassio-google-drive-backup",
+    "name": "Home Assistant Filen.io Backup Repository",
+    "url": "https://github.com/sabeechen/hassio-filen-drive-backup",
     "maintainer": "Stephen Beechen <stephen@beechens.com>"
 }
