@@ -241,14 +241,19 @@ Yes. This add-on is designed to use your own Filen API key directly. Open add-on
 
 ### How do I get a Filen API key?
 
-According to the official Filen API docs, the API key is returned by the authentication flow after login.
+The easiest way is to run the included helper script (requires Python 3, no extra
+packages needed):
 
-1. Use Filen's official authentication flow (or official SDK) as documented here: https://docs.filen.io/docs/api/guides/authentication
-2. Complete login and read the returned API key from the `/v3/login` response.
-3. In Home Assistant, open add-on Configuration and set `filen_api_key` to that value.
-4. Save and restart the add-on.
+```bash
+python3 hassio-filen-drive-backup/dev/get_filen_api_key.py
+```
 
-If Filen provides an API key directly in their account UI, you can use that value as well.
+Enter your Filen.io e-mail and password when prompted. The script implements the
+official Filen login flow and prints your API key.
+Copy the printed key into the add-on **Configuration** tab as `filen_api_key`.
+
+For the manual / background details see [LOCAL_AUTH.md](LOCAL_AUTH.md) or the
+[official Filen auth docs](https://docs.filen.io/docs/api/guides/authentication).
 
 ### Can I permanently save a backup so it doesn't get cleaned up?
 
