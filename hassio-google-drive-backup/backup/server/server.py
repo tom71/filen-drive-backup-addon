@@ -170,15 +170,33 @@ class Server():
             'messages': []
         })
 
+    async def filen_authenticate(self, _request: Request):
+        # Filen authentication is API-key based and handled directly in the addon UI.
+        return json_response({
+            "message": "Filen authentication does not use OAuth. Please set your Filen API key in the addon settings."
+        }, status=400)
+
+    async def filen_picker(self, _request: Request):
+        # There is no folder picker flow required for Filen.
+        return json_response({
+            "message": "Filen does not support the Google Drive folder picker flow."
+        }, status=400)
+
+    async def filen_refresh(self, _request: Request):
+        # Filen API keys are long-lived and do not require refresh tokens.
+        return json_response({
+            "message": "Filen API keys do not require refresh."
+        }, status=400)
+
     def buildApp(self, app):
         path = abspath(join(__file__, "..", "..", "static"))
         app.add_routes([
             static("/static/" + VERSION, path, append_version=True),
             static("/drive/static/" + VERSION, path, append_version=True),
             static("/filen/static/" + VERSION, path, append_version=True),
-            get("/filen/picker", self.picker),
-            get("/filen/authenticate", self.authorize),
-            post("/filen/refresh", self.refresh),
+            get("/filen/picker", self.filen_picker),
+            get("/filen/authenticate", self.filen_authenticate),
+            post("/filen/refresh", self.filen_refresh),
             get("/drive/picker", self.picker),
             get("/", self.index),
             get("/drive/authorize", self.authorize),

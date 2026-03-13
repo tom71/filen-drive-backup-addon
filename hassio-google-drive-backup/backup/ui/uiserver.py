@@ -150,8 +150,12 @@ class UiServer(Trigger, Startable):
         status["backup_name_template"] = self.config.get(
             Setting.BACKUP_NAME)
         status['sources'] = self._coord.buildBackupMetrics()
-        status['authenticate_url'] = str(URL(self.config.get(Setting.AUTHORIZATION_HOST)).with_path("/drive/authorize"))
-        choose_url = str(URL(self.config.get(Setting.AUTHORIZATION_HOST)).with_path('/drive/picker').with_query({
+        use_filen = self.config.get(Setting.ENABLE_FILEN_UPLOAD)
+        auth_path = "/filen/authenticate" if use_filen else "/drive/authorize"
+        picker_path = "/filen/picker" if use_filen else "/drive/picker"
+
+        status['authenticate_url'] = str(URL(self.config.get(Setting.AUTHORIZATION_HOST)).with_path(auth_path))
+        choose_url = str(URL(self.config.get(Setting.AUTHORIZATION_HOST)).with_path(picker_path).with_query({
             "bg": self.config.get(Setting.BACKGROUND_COLOR),
             "ac": self.config.get(Setting.ACCENT_COLOR),
             "version": VERSION
