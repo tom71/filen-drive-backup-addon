@@ -32,7 +32,7 @@ URL_MATCH_TOKEN = "^/token$"
 
 
 @singleton
-class SimulatedGoogle(BaseServer):
+class SimulatedFilen(BaseServer):
     @inject
     def __init__(self, config: Config, time: Time, ports: Ports):
         self._time = time

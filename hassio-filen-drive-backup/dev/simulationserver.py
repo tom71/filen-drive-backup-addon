@@ -16,7 +16,7 @@ from tests.faketime import FakeTime
 from backup.module import BaseModule
 from backup.config import Config, Setting
 from .http_exception import HttpMultiException
-from .simulated_google import SimulatedGoogle
+from .simulated_google import SimulatedFilen
 from .base_server import BaseServer
 from .ports import Ports
 from .request_interceptor import RequestInterceptor
@@ -37,7 +37,7 @@ rangePattern = re.compile("bytes=\\d+-\\d+")
 @singleton
 class SimulationServer(BaseServer):
     @inject
-    def __init__(self, ports: Ports, time: Time, session: ClientSession, authserver: Server, config: Config, google: SimulatedGoogle, supervisor: SimulatedSupervisor, api_ingress: APIIngress, interceptor: RequestInterceptor):
+    def __init__(self, ports: Ports, time: Time, session: ClientSession, authserver: Server, config: Config, google: SimulatedFilen, supervisor: SimulatedSupervisor, api_ingress: APIIngress, interceptor: RequestInterceptor):
         self.interceptor = interceptor
         self.google = google
         self.supervisor = supervisor

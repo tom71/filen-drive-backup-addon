@@ -1,7 +1,7 @@
 from .backups import AbstractBackup
 from typing import Any, Dict
 
-from ..const import SOURCE_GOOGLE_DRIVE, NECESSARY_PROP_KEY_SLUG, NECESSARY_PROP_KEY_DATE, NECESSARY_PROP_KEY_NAME, PROP_NOTE
+from ..const import SOURCE_FILEN, NECESSARY_PROP_KEY_SLUG, NECESSARY_PROP_KEY_DATE, NECESSARY_PROP_KEY_NAME, PROP_NOTE
 from ..exceptions import ensureKey
 from ..config import BoolValidator
 from ..time import Time
@@ -13,13 +13,13 @@ PROP_TYPE = "type"
 PROP_VERSION = "version"
 PROP_PROTECTED = "protected"
 PROP_RETAINED = "retained"
-DRIVE_KEY_TEXT = "Google Drive's backup metadata"
+DRIVE_KEY_TEXT = "Filen's backup metadata"
 
 
 class DriveBackup(AbstractBackup):
 
     """
-    Represents a Home Assistant backup stored on Google Drive
+    Represents a Home Assistant backup stored on Filen
     """
 
     def __init__(self, data: Dict[Any, Any]):
@@ -35,7 +35,7 @@ class DriveBackup(AbstractBackup):
             date=Time.parse(
                 ensureKey(NECESSARY_PROP_KEY_DATE, props, DRIVE_KEY_TEXT)),
             size=int(ensureKey("size", data, DRIVE_KEY_TEXT)),
-            source=SOURCE_GOOGLE_DRIVE,
+            source=SOURCE_FILEN,
             backupType=props.get(PROP_TYPE, "?"),
             version=props.get(PROP_VERSION, None),
             protected=BoolValidator.strToBool(props.get(PROP_PROTECTED, "?")),

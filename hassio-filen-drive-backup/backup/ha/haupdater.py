@@ -9,12 +9,12 @@ from ..util import GlobalInfo, Backoff, Estimator
 from .harequests import HaRequests
 from ..time import Time
 from ..worker import Worker
-from ..const import SOURCE_HA, SOURCE_GOOGLE_DRIVE, SOURCE_FILEN
+from ..const import SOURCE_HA, SOURCE_FILEN, SOURCE_FILEN
 from ..logger import getLogger
 
 logger = getLogger(__name__)
 
-NOTIFICATION_TITLE = "Home Assistant Google Drive Backup is Having Trouble"
+NOTIFICATION_TITLE = "Home Assistant Filen Backup is Having Trouble"
 NOTIFICATION_DESC_LINK = "The add-on is having trouble making backups and needs attention.  Please visit the add-on [status page]({0}) for details."
 NOTIFICATION_DESC_STATIC = "The add-on is having trouble making backups and needs attention.  Please visit the add-on status page for details."
 
@@ -131,7 +131,7 @@ class HaUpdater(Worker):
 
     def _buildBackupUpdate(self):
         backups = list(filter(lambda s: not s.ignore(), self._coordinator.backups()))
-        remote_source = SOURCE_FILEN if any(map(lambda s: s.getSource(SOURCE_FILEN) is not None, backups)) else SOURCE_GOOGLE_DRIVE
+        remote_source = SOURCE_FILEN if any(map(lambda s: s.getSource(SOURCE_FILEN) is not None, backups)) else SOURCE_FILEN
 
         def backup_date(backup: Backup):
             if self._config.get(Setting.IGNORE_OTHER_BACKUPS):

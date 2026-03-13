@@ -77,14 +77,14 @@ class SimulatedSupervisor(BaseServer):
             ]
         }
 
-        self.installAddon(self._addon_slug, "Home Assistant Google drive Backup")
+        self.installAddon(self._addon_slug, "Home Assistant Filen drive Backup")
         self.installAddon("42", "The answer")
         self.installAddon("sgadg", "sdgsagsdgsggsd")
 
     def defaultOptions(self):
         return {
             "max_backups_in_ha": 4,
-            "max_backups_in_google_drive": 4,
+            "max_backups_in_filen": 4,
             "days_between_backups": 3
         }
 

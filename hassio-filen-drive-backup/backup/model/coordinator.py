@@ -122,7 +122,7 @@ class Coordinator(Trigger):
                 return min(self.nextBackupTime(), scheduled)
 
     def nextSyncCheckOffset(self):
-        """Determines how long we shoudl wait from the last check the refresh the cache of backups from Google Drive and Home Assistant"""
+        """Determines how long we shoudl wait from the last check the refresh the cache of backups from Filen and Home Assistant"""
         # If we always sync MAX_SYNC_INTERVAL_SECONDS secodns after the last
         # check, then the addon in aggregate puts a really high strain on google
         # on every hour and the addon's auth servers need to be provisioned for

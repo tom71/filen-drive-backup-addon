@@ -66,7 +66,7 @@ class Server():
     async def filen_picker(self, _request: Request):
         # There is no folder picker flow required for Filen.
         return json_response({
-            "message": "Filen does not support the Google Drive folder picker flow."
+            "message": "Filen does not support the Filen folder picker flow."
         }, status=400)
 
     async def filen_refresh(self, _request: Request):

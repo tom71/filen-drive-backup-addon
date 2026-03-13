@@ -13,7 +13,7 @@ from aiohttp.web import HTTPException, Request, HTTPSeeOther, HTTPNotFound
 from injector import inject, singleton
 
 from backup.config import Config, Setting, CreateOptions, BoolValidator, Startable, Version, VERSION
-from backup.const import SOURCE_GOOGLE_DRIVE, SOURCE_FILEN, SOURCE_HA, GITHUB_BUG_TEMPLATE
+from backup.const import SOURCE_FILEN, SOURCE_FILEN, SOURCE_HA, GITHUB_BUG_TEMPLATE
 from backup.model import Coordinator, Backup, AbstractBackup
 from backup.exceptions import KnownError, ensureKey
 from backup.util import GlobalInfo, Estimator, DataCache, UpgradeFlags
@@ -263,7 +263,7 @@ class UiServer(Trigger, Startable):
         note = request.query.get("note", None)
         options = CreateOptions(self._time.now(), custom_name, {
             SOURCE_FILEN: retain_drive,
-            SOURCE_GOOGLE_DRIVE: retain_drive,
+            SOURCE_FILEN: retain_drive,
             SOURCE_HA: retain_ha
         }, note=note)
         backup = await self._coord.startBackup(options)
@@ -355,7 +355,7 @@ class UiServer(Trigger, Startable):
         def content():
             html = format == "colored"
             if format == "html":
-                yield "<html><head><title>Home Assistant Filen.io Backup Log</title></head><body><pre>\n"
+                yield "<html><head><title>Home Assistant Filen Backup Log</title></head><body><pre>\n"
             for line in getHistory(self.last_log_index, html):
                 self.last_log_index = line[0]
                 if line:

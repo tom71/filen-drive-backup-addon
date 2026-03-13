@@ -40,7 +40,7 @@ class FilenSource(BackupDestination):
     def maxCount(self) -> int:
         if self.config.get(Setting.MAX_BACKUPS_IN_FILEN) != Setting.MAX_BACKUPS_IN_FILEN.default():
             return self.config.get(Setting.MAX_BACKUPS_IN_FILEN)
-        return self.config.get(Setting.MAX_BACKUPS_IN_GOOGLE_DRIVE)
+        return self.config.get(Setting.MAX_BACKUPS_IN_FILEN)
 
     def _api_key(self) -> str:
         return self.config.get(Setting.FILEN_API_KEY)

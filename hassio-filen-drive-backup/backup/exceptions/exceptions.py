@@ -3,14 +3,14 @@ from abc import ABC, abstractmethod
 from ..const import (DRIVE_FOLDER_URL_FORMAT, ERROR_BACKUP_FOLDER_INACCESSIBLE,
                      ERROR_BACKUP_FOLDER_MISSING, ERROR_BAD_PASSWORD_KEY,
                      ERROR_CREDS_EXPIRED, ERROR_DRIVE_FULL,
-                     ERROR_EXISTING_FOLDER, ERROR_GOOGLE_CONNECT, ERROR_GOOGLE_CRED_PROCESS,
-                     ERROR_GOOGLE_DNS, ERROR_GOOGLE_INTERNAL,
-                     ERROR_GOOGLE_SESSION, ERROR_GOOGLE_TIMEOUT,
+                     ERROR_EXISTING_FOLDER, ERROR_FILEN_CONNECT, ERROR_FILEN_CRED_PROCESS,
+                     ERROR_FILEN_DNS, ERROR_FILEN_INTERNAL,
+                     ERROR_FILEN_SESSION, ERROR_FILEN_TIMEOUT,
                      ERROR_HA_DELETE_ERROR, ERROR_INVALID_CONFIG, ERROR_LOGIC,
                      ERROR_LOW_SPACE, ERROR_MULTIPLE_DELETES, ERROR_NO_BACKUP,
                      ERROR_NOT_UPLOADABLE, ERROR_PLEASE_WAIT, ERROR_PROTOCOL,
                      ERROR_BACKUP_IN_PROGRESS, ERROR_UPLOAD_FAILED, LOG_IN_TO_DRIVE,
-                     SUPERVISOR_PERMISSION, ERROR_GOOGLE_UNEXPECTED, ERROR_SUPERVISOR_TIMEOUT, ERROR_SUPERVISOR_UNEXPECTED, ERROR_SUPERVISOR_FILE_SYSTEM,
+                     SUPERVISOR_PERMISSION, ERROR_FILEN_UNEXPECTED, ERROR_SUPERVISOR_TIMEOUT, ERROR_SUPERVISOR_UNEXPECTED, ERROR_SUPERVISOR_FILE_SYSTEM,
                      UNKONWN_NETWORK_STORAGE, INACTIVE_NETWORK_STORAGE)
 
 
@@ -108,9 +108,9 @@ class UploadFailed(KnownError):
         return ERROR_UPLOAD_FAILED
 
 
-class GoogleCredentialsExpired(KnownError):
+class FilenCredentialsExpired(KnownError):
     def message(self):
-        return "Your Google Drive credentials have expired.  Please reauthorize with Google Drive through the Web UI."
+        return "Your Filen credentials have expired.  Please reauthorize with Filen through the Web UI."
 
     def code(self):
         return ERROR_CREDS_EXPIRED
@@ -180,7 +180,7 @@ class DriveQuotaExceeded(KnownError):
         self._data = {}
 
     def message(self):
-        return "Google Drive is out of space"
+        return "Filen is out of space"
 
     def code(self):
         return ERROR_DRIVE_FULL
@@ -195,56 +195,56 @@ class DriveQuotaExceeded(KnownError):
         return False
 
 
-class GoogleDnsFailure(KnownError):
+class FilenDnsFailure(KnownError):
     def message(self):
         return "Unable to resolve host www.googleapis.com"
 
     def code(self):
-        return ERROR_GOOGLE_DNS
+        return ERROR_FILEN_DNS
 
 
-class GoogleCantConnect(KnownError):
+class FilenCantConnect(KnownError):
     def message(self):
         return "Unable to connect to www.googleapis.com"
 
     def code(self):
-        return ERROR_GOOGLE_CONNECT
+        return ERROR_FILEN_CONNECT
 
 
-class GoogleInternalError(KnownTransient):
+class FilenInternalError(KnownTransient):
     def message(self):
-        return "Google Drive returned an internal error (HTTP: 5XX)"
+        return "Filen returned an internal error (HTTP: 5XX)"
 
     def code(self):
-        return ERROR_GOOGLE_INTERNAL
+        return ERROR_FILEN_INTERNAL
 
 
-class GoogleTimeoutError(KnownError):
+class FilenTimeoutError(KnownError):
     def message(self):
-        return "Timed out while trying to reach Google Drive"
+        return "Timed out while trying to reach Filen"
 
     def code(self):
-        return ERROR_GOOGLE_TIMEOUT
+        return ERROR_FILEN_TIMEOUT
 
     @classmethod
     def factory(cls):
-        return GoogleTimeoutError()
+        return FilenTimeoutError()
 
 
-class GoogleRateLimitError(KnownTransient):
+class FilenRateLimitError(KnownTransient):
     def message(self):
-        return "The addon has made too many requests to Google Drive, and will back off"
+        return "The addon has made too many requests to Filen, and will back off"
 
     def code(self):
-        return "google_rate_limit"
+        return "filen_rate_limit"
 
 
-class GoogleSessionError(KnownError):
+class FilenSessionError(KnownError):
     def message(self):
-        return "Upload session with Google Drive expired.  The upload could not complete."
+        return "Upload session with Filen expired.  The upload could not complete."
 
     def code(self):
-        return ERROR_GOOGLE_SESSION
+        return ERROR_FILEN_SESSION
 
 
 class HomeAssistantDeleteError(KnownError):
@@ -303,12 +303,12 @@ class BackupFolderInaccessible(KnownError):
         return ERROR_BACKUP_FOLDER_INACCESSIBLE
 
 
-class GoogleDrivePermissionDenied(KnownError):
+class FilenDrivePermissionDenied(KnownError):
     def message(self):
-        return "Google Drive denied the request due to permissions."
+        return "Filen denied the request due to permissions."
 
     def code(self):
-        return "google_drive_permissions"
+        return "filen_drive_permissions"
 
 
 class LowSpaceError(KnownError):
@@ -348,12 +348,12 @@ class UserCancelledError(KnownError):
         return False
 
 
-class CredRefreshGoogleError(KnownError):
+class CredRefreshFilenError(KnownError):
     def __init__(self, from_google=None):
         self.from_google = from_google
 
     def message(self):
-        return "Couldn't refresh your credentials with Google because: '{}'".format(self.from_google)
+        return "Couldn't refresh your credentials with Filen because: '{}'".format(self.from_google)
 
     def code(self):
         return "token_refresh_google_error"
@@ -369,7 +369,7 @@ class CredRefreshMyError(KnownError):
         self.reason = reason
 
     def message(self):
-        return "Couldn't refresh Google Drive credentials because: {}".format(self.reason)
+        return "Couldn't refresh Filen credentials because: {}".format(self.reason)
 
     def code(self):
         return "token_refresh_my_error"
@@ -380,9 +380,9 @@ class CredRefreshMyError(KnownError):
         }
 
 
-class LogInToGoogleDriveError(KnownError):
+class LogInToFilenDriveError(KnownError):
     def message(self):
-        return "Please visit drive.google.com to activate your Google Drive account."
+        return "Please visit drive.filen.io to activate your Filen account."
 
     def code(self):
         return LOG_IN_TO_DRIVE
@@ -402,16 +402,16 @@ class SupervisorPermissionError(KnownError):
         return True
 
 
-class GoogleUnexpectedError(KnownError):
+class FilenUnexpectedError(KnownError):
     def message(self):
-        return "Google gave an unexpected response"
+        return "Filen gave an unexpected response"
 
     def code(self):
-        return ERROR_GOOGLE_UNEXPECTED
+        return ERROR_FILEN_UNEXPECTED
 
     @classmethod
     def factory(cls):
-        return GoogleUnexpectedError()
+        return FilenUnexpectedError()
 
 
 class SupervisorTimeoutError(KnownError):
@@ -446,7 +446,7 @@ class SupervisorFileSystemError(KnownError):
         return ERROR_SUPERVISOR_FILE_SYSTEM
 
 
-class GoogleCredGenerateError(KnownError):
+class FilenCredGenerateError(KnownError):
     def __init__(self, message):
         self._msg = message
 
@@ -454,7 +454,7 @@ class GoogleCredGenerateError(KnownError):
         return self._msg
 
     def code(self):
-        return ERROR_GOOGLE_CRED_PROCESS
+        return ERROR_FILEN_CRED_PROCESS
 
 
 class UnknownNetworkStorageError(KnownError):

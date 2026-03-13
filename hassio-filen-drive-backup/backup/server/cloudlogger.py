@@ -19,7 +19,7 @@ class CloudLogger(StandardLogger):
                 google_logger_client = logging.Client()
                 self.googler_logger = google_logger_client.logger("refresh_server")
             except DefaultCredentialsError:
-                basic_logger.error("Unable to start Google Logger, no default credentials")
+                basic_logger.error("Unable to start Filen Logger, no default credentials")
 
     def log_struct(self, data):
         if self.google_logger is not None:

@@ -1,10 +1,10 @@
-tooltipBackedUp = "This backup has been uploaded to Google Drive."
-tooltipDriveOnly = "This backup is only in Google Drive. Select \"Upload\" from the actions menu to Upload it to Home Assistant."
+tooltipBackedUp = "This backup has been uploaded to Filen.io."
+tooltipDriveOnly = "This backup is only in Filen.io. Select \"Upload\" from the actions menu to Upload it to Home Assistant."
 tooltipHassio = "This backup is only in Home Assistant. Change the number of backups you keep in Drive to get it to upload."
-tooltipWaiting = "This backup is waiting to upload to Google Drive."
-tooltipLoading = "This backup is being downloaded from Google Drive to Home Assistant.  Soon it will be available to restore."
+tooltipWaiting = "This backup is waiting to upload to Filen.io."
+tooltipLoading = "This backup is being downloaded from Filen.io to Home Assistant.  Soon it will be available to restore."
 tooltipPending = "This backup is being created.  If it takes a long time, see the addon's FAQ on GitHub"
-tooltipUploading = "This backup is being uploaded to Google Drive."
+tooltipUploading = "This backup is being uploaded to Filen.io."
 
 var github_bug_desc = `
 Please add some information about your configuration and the problem you ran into here. 
@@ -37,8 +37,8 @@ function toggleLinkSlide(checkbox, target) {
 }
 
 function sourceToName(source) {
-  if (source == "GoogleDrive") {
-    return "Google Drive";
+  if (source == "Filen.ioDrive") {
+    return "Filen.io";
   } else if (source == "HomeAssistant") {
     return "Home Assistant";
   } else {
@@ -647,8 +647,8 @@ function processStatusUpdate(data) {
   $('#next_backup').attr("datetime", data.next_backup_machine);
   $('#next_backup').attr("title", data.next_backup_detail);
 
-  if (data.sources.GoogleDrive.enabled && data.folder_id && data.folder_id.length > 0 ) {
-    $('.open_drive_link').attr("href", "https://drive.google.com/drive/u/0/folders/" + data.folder_id);
+  if (data.sources.Filen.ioDrive.enabled && data.folder_id && data.folder_id.length > 0 ) {
+    $('.open_drive_link').attr("href", "https://drive.filen.io/drive/u/0/folders/" + data.folder_id);
     $('.open_drive_menu').show()
   } else {
     $('.open_drive_menu').hide()
@@ -819,7 +819,7 @@ function populateDnsInfo(target, data) {
 function populateGitHubInfo(target, error) {
   $('#generic_error_title', target).text(error.message);
   $('#generic_error_details', target).text(error.details);
-  $('#error_github_search', target).attr("href", "https://github.com/sabeechen/hassio-google-drive-backup/issues?q=" + encodeURIComponent("\"" + error.message.replace("\"", "\\\"") + "\""));
+  $('#error_github_search', target).attr("href", "https://github.com/tom71/hassio-google-drive-backup/issues?q=" + encodeURIComponent("\"" + error.message.replace("\"", "\\\"") + "\""));
 }
 
 function simulateError() {

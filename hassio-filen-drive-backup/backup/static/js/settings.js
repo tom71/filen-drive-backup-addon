@@ -197,12 +197,12 @@ function handleSettingsDialog(data) {
   // Configure the visibility/link of the "current backup folder" help text and button.
   if (data.backup_folder && data.backup_folder.length > 0) {
     $("#current_folder_span").show()
-    $('#current_folder_link').attr("href", "https://drive.google.com/drive/u/0/folders/" + data.backup_folder);
+    $('#current_folder_link').attr("href", "https://drive.filen.io/drive/u/0/folders/" + data.backup_folder);
   } else {
     $("#current_folder_span").hide();
   }
 
-  if (config.specify_backup_folder && last_data && last_data.sources.GoogleDrive.enabled) {
+  if (config.specify_backup_folder && last_data && last_data.sources.Filen.ioDrive.enabled) {
     $("#choose_folder_controls").show();
   } else {
     $("#choose_folder_controls").hide();
@@ -255,7 +255,7 @@ function handleSettingsDialog(data) {
 }
 
 function chooseFolderChanged() {
-  if ($("#specify_backup_folder").is(':checked') && last_data && last_data.sources.GoogleDrive.enabled) {
+  if ($("#specify_backup_folder").is(':checked') && last_data && last_data.sources.Filen.ioDrive.enabled) {
     $("#choose_folder_controls").show();
   } else {
     $("#choose_folder_controls").hide();

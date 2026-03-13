@@ -4,7 +4,7 @@ from typing import Dict, Optional, Union
 from dateutil.tz import tzutc
 from ..util import Estimator
 
-from ..const import SOURCE_GOOGLE_DRIVE, SOURCE_FILEN, SOURCE_HA
+from ..const import SOURCE_FILEN, SOURCE_FILEN, SOURCE_HA
 from ..logger import getLogger
 from ..config import CreateOptions
 
@@ -16,7 +16,7 @@ PROP_PROTECTED = "protected"
 PROP_RETAINED = "retained"
 PROP_NOTE = "note"
 
-DRIVE_KEY_TEXT = "Google Drive's backup metadata"
+DRIVE_KEY_TEXT = "Filen's backup metadata"
 HA_KEY_TEXT = "Home Assistant's backup metadata"
 
 
@@ -116,7 +116,7 @@ class AbstractBackup():
 
 class Backup(object):
     """
-    Represents a Home Assistant backup stored on Google Drive, locally in
+    Represents a Home Assistant backup stored on Filen, locally in
     Home Assistant, or a pending backup we expect to see show up later
     """
 
@@ -266,7 +266,7 @@ class Backup(object):
             if status:
                 return status
 
-        inDrive = self.getSource(SOURCE_GOOGLE_DRIVE) is not None
+        inDrive = self.getSource(SOURCE_FILEN) is not None
         inFilen = self.getSource(SOURCE_FILEN) is not None
         inHa = self.getSource(SOURCE_HA) is not None
         inRemote = inDrive or inFilen

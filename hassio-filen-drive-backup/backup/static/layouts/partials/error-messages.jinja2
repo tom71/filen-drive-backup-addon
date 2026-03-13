@@ -8,14 +8,14 @@
     <i class="material-icons prefix">folder_open</i>
     <input type="text" id="{{ id }}" />
     <label for="{{ id }}">Enter your folder ID here, then click "Save"</label>
-    <span class="helper-text hide-for-default-creds">The Google Drive ID of the folder you'd like to upload backups
+    <span class="helper-text hide-for-default-creds">The Filen.io ID of the folder you'd like to upload backups
       into. You
       can get this id by navigating to the folder in
-      <a href="https://drive.google.com" target="_blank" rel="noreferrer">Google Drive</a>
+      <a href="https://drive.filen.io" target="_blank" rel="noreferrer">Filen.io</a>
       and copying it out of the URL. It should be a long sequence of characters at the end of the URL. For
       example if the URL for my folder is
       <a target="_blank" rel="noreferrer"
-        href="https://drive.google.com/drive/folders/1el4ZWcE0xdkIu_Yt_2kxk36qE7K5O188">https://drive.google.com/drive/folders/1el4ZWcE0xdkIu_Yt_2kxk36qE7K5O188</a>,
+        href="https://drive.filen.io/drive/folders/1el4ZWcE0xdkIu_Yt_2kxk36qE7K5O188">https://drive.filen.io/drive/folders/1el4ZWcE0xdkIu_Yt_2kxk36qE7K5O188</a>,
       then the Drive ID is 1el4ZWcE0xdkIu_Yt_2kxk36qE7K5O188</span>
     <span class="helper-text hide-for-custom-creds">Use the "Choose Folder" button to open a new window where you can
       select the
@@ -90,7 +90,7 @@
   </li>
   <li>
     Make your backups smaller (see <a target="_blank" rel="noreferrer"
-      href="https://github.com/sabeechen/hassio-google-drive-backup#will-this-fill-up-my-google-drive-why-are-my-backups-so-big">this
+      href="https://github.com/tom71/hassio-google-drive-backup#will-this-fill-up-my-google-drive-why-are-my-backups-so-big">this
       tip</a>).
     You can also click the little <i class="material-icons" style="display: inline; font-size: 15px">info</i>
     next to backups below to see which parts of them are taking up the most space.
@@ -102,7 +102,7 @@
   </li>
   <li>
     Delete existing backups from Home Assistant by clicking <b>"Action"</b> -> <b>"Delete"</b> on backups below. Make
-    sure either you don't need them anymore or they're uploaded to Google Drive.
+    sure either you don't need them anymore or they're uploaded to Filen.io.
   </li>
   <li>
     Modify your <a href="#!" onclick="loadSettings()"><i class="material-icons"
@@ -120,27 +120,27 @@
 <a class="btn-flat" href="#" onclick="sync('drive_full'); return false;"><i class="material-icons">refresh</i>Try
   Syncing Again</a>
 {% endset %}
-{% call macros.errorMessage("Google Drive is Full", "drive_full", "disc_full", drive_full_actions) %}
+{% call macros.errorMessage("Filen.io is Full", "drive_full", "disc_full", drive_full_actions) %}
 <p>
-  Google Drive is full, backups can't continue until space is available. The most recent upload attempt is <span
-    id="data_backup_size" target="_blank"></span> and Google says you have <span id="data_free_space"
-    target="_blank"></span> available. You can go to Google Drive's
-  <a href="https://drive.google.com/drive/quota" target="_blank" rel="noreferrer">quota page</a>
-  to see what's using up space in your Google Drive, but because that space is shared between several Google products
-  (e.g. Gmail, Google Photos)
+  Filen.io is full, backups can't continue until space is available. The most recent upload attempt is <span
+    id="data_backup_size" target="_blank"></span> and Filen.io says you have <span id="data_free_space"
+    target="_blank"></span> available. You can go to Filen.io's
+  <a href="https://drive.filen.io/drive/quota" target="_blank" rel="noreferrer">quota page</a>
+  to see what's using up space in your Filen.io, but because that space is shared between several Filen.io products
+  (e.g. Gmail, Filen.io Photos)
   one of those products might be using the space instead. You can see your usage across all those products on
-  Google's <a href="https://drive.google.com/settings/storage" target="_blank" rel="noreferrer">storage settings</a>
+  Filen.io's <a href="https://drive.filen.io/settings/storage" target="_blank" rel="noreferrer">storage settings</a>
   page.
 </p>
 <p>To resolve this you can:</p>
 <ul class="browser-default">
   <li>
-    Free up space in Google Drive, Gmail, or Google Photos by deleting things.
+    Free up space in Filen.io, Gmail, or Filen.io Photos by deleting things.
   </li>
   <li>
     Modify your <a href="#!" onclick="loadSettings()"><i class="material-icons"
         style="display: inline; font-size: 15px">settings</i> add-on settings</a>
-    to store fewer backups in Google Drive
+    to store fewer backups in Filen.io
   </li>
   <li>
     Modify your <a href="#!" onclick="loadSettings()"><i class="material-icons"
@@ -148,26 +148,26 @@
     to use partial backups.
   </li>
   <li>
-    <a href="https://drive.google.com/settings/storage" target="_blank" rel="noreferrer">Buy more storage</a> from
-    Google
+    <a href="https://drive.filen.io/settings/storage" target="_blank" rel="noreferrer">Buy more storage</a> from
+    Filen.io
   </li>
   <li>
     Make your backups smaller (see <a
-      href="https://github.com/sabeechen/hassio-google-drive-backup#will-this-fill-up-my-google-drive-why-are-my-backups-so-big"
+      href="https://github.com/tom71/hassio-google-drive-backup#will-this-fill-up-my-google-drive-why-are-my-backups-so-big"
       target="_blank" rel="noreferrer">this tip</a>)
   </li>
   {% endcall %}
 
-  {% call macros.errorMessage("Couldn't Log in with Google", "creds_bad", "error") %}
-  <p>Google Drive rejected your credentials. Your backups will not be uploaded until this is resolved.</p>
+  {% call macros.errorMessage("Couldn't Log in with Filen.io", "creds_bad", "error") %}
+  <p>Filen.io rejected your credentials. Your backups will not be uploaded until this is resolved.</p>
   <p>This can happen if:</p>
   <ul class="browser-default">
-    <li>You revoked the add-on's access in your Google account settings.</li>
-    <li>You recently changed your Google account password.</li>
-    <li>You haven't used your Google account for over 6 months.</li>
-    <li>The add-on's credentials changed, or Google changed them.</li>
+    <li>You revoked the add-on's access in your Filen.io account settings.</li>
+    <li>You recently changed your Filen.io account password.</li>
+    <li>You haven't used your Filen.io account for over 6 months.</li>
+    <li>The add-on's credentials changed, or Filen.io changed them.</li>
   </ul>
-  <p>To resolve this, you'll need to <a href="reauthenticate">authenticate</a> this add-on with Google again. If that
+  <p>To resolve this, you'll need to <a href="reauthenticate">authenticate</a> this add-on with Filen.io again. If that
     still doesn't help, you may need to update the add-on</p>
   {% endcall %}
 
@@ -197,15 +197,15 @@
   </p>
   {% endcall %}
 
-  {% set google_dns_actions %}
-  <a class="btn-flat" href="#" onclick="sync('google_dns'); return false;"><i class="material-icons">refresh</i>Try
+  {% set filen_dns_actions %}
+  <a class="btn-flat" href="#" onclick="sync('filen_dns'); return false;"><i class="material-icons">refresh</i>Try
     Syncing Again</a>
   {% endset %}
-  {% call macros.errorMessage("Couldn't Reach Google Drive (DNS error)", "google_dns", "cloud_off", google_dns_actions)
+  {% call macros.errorMessage("Couldn't Reach Filen.io (DNS error)", "filen_dns", "cloud_off", filen_dns_actions)
   %}
   <p>
-    The add-on couldn't resolve Google Drive's server address. Backups can't be uploaded
-    without being able to reach Google Drive.
+    The add-on couldn't resolve Filen.io's server address. Backups can't be uploaded
+    without being able to reach Filen.io.
   </p>
   <p>Please ensure:</p>
   <ul class="browser-default">
@@ -217,14 +217,14 @@
     </li>
   </ul>
   <div style="margin-top: -10px; margin-bottom: 15px;">
-    <a onclick="toggleLinkSlide(this, 'cant_reach_google_dns');" href="#!"><i class="material-icons"
+    <a onclick="toggleLinkSlide(this, 'cant_reach_filen_dns');" href="#!"><i class="material-icons"
         style="padding-right: 10px; vertical-align: bottom;">arrow_drop_down</i> Show DNS info</a>
-    <div id="cant_reach_google_dns" class="default-hidden" style="padding: 10px; font-family: monospace;">
+    <div id="cant_reach_filen_dns" class="default-hidden" style="padding: 10px; font-family: monospace;">
       <p>
-        Below is the list of names and IP Addresses Google's API servers resolve to. Next to each is
+        Below is the list of names and IP Addresses Filen.io's API servers resolve to. Next to each is
         the result from an attempt the add-on has made to ping the address. This may help in
-        determining if something in your network is blocking access to one of Google's API servers,
-        or if Google's API servers are having problems.
+        determining if something in your network is blocking access to one of Filen.io's API servers,
+        or if Filen.io's API servers are having problems.
       </p>
       <div class="dns_info row"></div>
       <div class="divider"></div>
@@ -233,15 +233,15 @@
   <p>You can also try restarting this add-on, the supervisor, or Home Assistant.</p>
   {% endcall %}
 
-  {% set google_timeout_actions %}
-  <a class="btn-flat" href="#" onclick="sync('google_timeout'); return false;"><i class="material-icons">refresh</i>Try
+  {% set filen_timeout_actions %}
+  <a class="btn-flat" href="#" onclick="sync('filen_timeout'); return false;"><i class="material-icons">refresh</i>Try
     Syncing Again</a>
   {% endset %}
-  {% call macros.errorMessage("Google Drive Connection Timeout", "google_timeout", "cloud_off", google_timeout_actions)
+  {% call macros.errorMessage("Filen.io Connection Timeout", "filen_timeout", "cloud_off", filen_timeout_actions)
   %}
   <p>
-    The connection timed out or was closed unexpectedly while trying to communicate with Google Drive.
-    Backups can't be uploaded without being able to reach Google Drive reliably. This can happen transiently from time
+    The connection timed out or was closed unexpectedly while trying to communicate with Filen.io.
+    Backups can't be uploaded without being able to reach Filen.io reliably. This can happen transiently from time
     to
     time and the addon will continue to attempt to sync your backups. This problem almost always resolves itself after
     some time.
@@ -256,16 +256,16 @@
     </li>
   </ul>
   <div style="margin-top: -10px; margin-bottom: 15px;">
-    <a onclick="toggleLinkSlide(this, 'cant_reach_google_dns_timeout');" href="#!">
+    <a onclick="toggleLinkSlide(this, 'cant_reach_filen_dns_timeout');" href="#!">
       <i class="material-icons" style="padding-right: 10px; vertical-align: bottom;">arrow_drop_down</i>
       Show DNS info
     </a>
-    <div id="cant_reach_google_dns_timeout" class="default-hidden" style="padding: 10px; font-family: monospace;">
+    <div id="cant_reach_filen_dns_timeout" class="default-hidden" style="padding: 10px; font-family: monospace;">
       <p>
-        Below is the list of names and IP Addresses Google's API servers resolve to. Next to each is
+        Below is the list of names and IP Addresses Filen.io's API servers resolve to. Next to each is
         the result from an attempt the add-on has made to ping the address. This may help in
-        determining if something in your network is blocking access to one of Google's API servers,
-        or if Google's API servers are having problems.
+        determining if something in your network is blocking access to one of Filen.io's API servers,
+        or if Filen.io's API servers are having problems.
       </p>
       <div class="dns_info row"></div>
       <div class="divider"></div>
@@ -274,15 +274,15 @@
   <p>You can also try syncing again or restarting this add-on, the supervisor, or Home Assistant.</p>
   {% endcall %}
 
-  {% set google_cant_connect_actions %}
-  <a class="btn-flat" href="#" onclick="sync('google_cant_connect'); return false;"><i
+  {% set filen_cant_connect_actions %}
+  <a class="btn-flat" href="#" onclick="sync('filen_cant_connect'); return false;"><i
       class="material-icons">refresh</i>Try Syncing Again</a>
   {% endset %}
-  {% call macros.errorMessage("Can't Connect to Google Drive", "google_cant_connect", "cloud_off",
-  google_cant_connect_actions) %}
+  {% call macros.errorMessage("Can't Connect to Filen.io", "filen_cant_connect", "cloud_off",
+  filen_cant_connect_actions) %}
   <p>
-    Google Drive refused an attempt to connect with it. Backups can't be uploaded without being able
-    to reach Google Drive.
+    Filen.io refused an attempt to connect with it. Backups can't be uploaded without being able
+    to reach Filen.io.
   </p>
   <p>Please ensure:</p>
   <ul class="browser-default">
@@ -294,16 +294,16 @@
     </li>
   </ul>
   <div style="margin-top: -10px; margin-bottom: 15px;">
-    <a onclick="toggleLinkSlide(this, 'cant_connect_google_dns');" href="#!">
+    <a onclick="toggleLinkSlide(this, 'cant_connect_filen_dns');" href="#!">
       <i class="material-icons" style="padding-right: 10px; vertical-align: bottom;">arrow_drop_down</i>
       Show DNS info
     </a>
-    <div id="cant_connect_google_dns" class="default-hidden" style="padding: 10px; font-family: monospace;">
+    <div id="cant_connect_filen_dns" class="default-hidden" style="padding: 10px; font-family: monospace;">
       <p>
-        Below is the list of names and IP Addresses Google's API servers resolve to. Next to each is
+        Below is the list of names and IP Addresses Filen.io's API servers resolve to. Next to each is
         the result from an attempt the add-on has made to ping the address. This may help in
-        determining if something in your network is blocking access to one of Google's API servers,
-        or if Google's API servers are having problems.
+        determining if something in your network is blocking access to one of Filen.io's API servers,
+        or if Filen.io's API servers are having problems.
       </p>
       <div class="dns_info row"></div>
       <div class="divider"></div>
@@ -360,16 +360,16 @@
   {% endset %}
   {% call macros.errorMessage("Attempting to Delete Multiple Backups", "multiple_deletes", "delete_forever",
   multiple_deletes_actions) %}
-  <p>The add-on attempted to delete <span id="data_GoogleDrive">(?)</span> backup(s) from Google
+  <p>The add-on attempted to delete <span id="data_Filen.ioDrive">(?)</span> backup(s) from Filen.io
     Drive and <span id="data_HomeAssistant">(?)</span> backup(s) from Home Assistant.
     Under normal circumstance, the add-on will only delete one backup at a time (the oldest).
     This warning is produced to prevent the add-on from accidentally deleting your history of backups.
-    This is normal if you recently lowered the number of backups to keep in Google Drive or Home
+    This is normal if you recently lowered the number of backups to keep in Filen.io or Home
     Assistant.</p>
     <p>
-      <b>To be deleted from Google Drive:</b>
+      <b>To be deleted from Filen.io:</b>
       <br/>
-      <pre style="margin-left: 20px" id="data_GoogleDrive_desc"></pre>
+      <pre style="margin-left: 20px" id="data_Filen.ioDrive_desc"></pre>
     </p>
     <p>
       <b>To be deleted from Home Assistant:</b>
@@ -389,22 +389,22 @@
   </ul>
   {% endcall %}
 
-  {% set google_server_error_actions %}
-  <a class="btn-flat" href="#" onclick="sync('google_server_error'); return false;"><i
+  {% set filen_server_error_actions %}
+  <a class="btn-flat" href="#" onclick="sync('filen_server_error'); return false;"><i
       class="material-icons">refresh</i>Try Syncing Again</a>
   {% endset %}
-  {% call macros.errorMessage("Google Server Error", "google_server_error", "cloud_off", google_server_error_actions) %}
-  <p>Google returned a server error (HTTP code 500) while trying to backup your backups.</p>
+  {% call macros.errorMessage("Filen.io Server Error", "filen_server_error", "cloud_off", filen_server_error_actions) %}
+  <p>Filen.io returned a server error (HTTP code 500) while trying to backup your backups.</p>
   <p>This happens sometimes for reasons beyond anyone's control and almost always the problem goes away on
     its own. The add-on will attempt uploading again soon, but you can also click "Try Syncing Again"
     below to make it retry now.</p>
   <p>If this error keeps sticking around, you can try:</p>
   <ul class="browser-default">
     <li>Making sure the internet is working fine.</li>
-    <li>Making sure you're able to log into your <a href="https://drive.google.com" target="_blank"
-        rel="noreferrer">Google Drive
+    <li>Making sure you're able to log into your <a href="https://drive.filen.io" target="_blank"
+        rel="noreferrer">Filen.io
         account</a> and upload files without problems.</li>
-    <li>Re-authenticating the add-on with Google Drive (click <b>"ACTIONS"</b> -> <b>"Reauthorize Google Drive"</b> up
+    <li>Re-authenticating the add-on with Filen.io (click <b>"ACTIONS"</b> -> <b>"Reauthorize Filen.io"</b> up
       top)
     </li>
     <li>Restarting the add-on, Home Assistant, or the supervisor.</li>
@@ -412,14 +412,14 @@
   </ul>
   {% endcall %}
 
-  {% set google_session_expired_actions %}
-  <a class="btn-flat" href="#" onclick="sync('google_session_expired'); return false;"><i
+  {% set filen_session_expired_actions %}
+  <a class="btn-flat" href="#" onclick="sync('filen_session_expired'); return false;"><i
       class="material-icons">refresh</i>Try Syncing Again</a>
   {% endset %}
-  {% call macros.errorMessage("Google Session Expired", "google_session_expired", "cloud_off",
-  google_session_expired_actions) %}
-  <p>Google returned a server error (HTTP code 404) while trying to upload your backups.</p>
-  <p>In most cases, this indicates that your upload took too long to upload. According to Google's
+  {% call macros.errorMessage("Filen.io Session Expired", "filen_session_expired", "cloud_off",
+  filen_session_expired_actions) %}
+  <p>Filen.io returned a server error (HTTP code 404) while trying to upload your backups.</p>
+  <p>In most cases, this indicates that your upload took too long to upload. According to Filen.io's
     documentation if an upload takes longer than a week then it will be forcibly cancelled and return this
     error. This can happen if your internet is very slow or your backups are very large, however the
     developer of this addon suspects this can happen in more common circumstances. If the below options don't
@@ -430,11 +430,11 @@
   <ul class="browser-default">
     <li>Syncing again (if it hasn't already started) by clicking "Try Syncing Again" below.</li>
     <li>Making sure you're able to log into your <a target="_blank" rel="noreferrer"
-        href="https://drive.google.com">Google
+        href="https://drive.filen.io">Filen.io
         Drive
         account</a> and upload files without problems.</li>
     <li>Ensuring your internet connection is reasonably fast by doing a <a target="_blank" rel="noreferrer"
-        href="https://www.google.com/search?q=speed+test">speed test</a></li>
+        href="https://www.filen.io/search?q=speed+test">speed test</a></li>
     <li>Making your backups smaller. Usually backups are large because of a huge sensor database. You
       can keep a smaller history by setting up the <a target="_blank" rel="noreferrer"
         href="https://www.home-assistant.io/components/recorder/">recorder component</a> purge settings in
@@ -453,15 +453,15 @@
   {% endset %}
   {% call macros.errorMessage("Existing Backup Folder Found", "existing_backup_folder", "folder_special",
   existing_backup_folder_actions) %}
-  <p>The add-on found a backup folder named "<b><span id="data_existing_name"></span></b>" in Google
+  <p>The add-on found a backup folder named "<b><span id="data_existing_name"></span></b>" in Filen.io
     Drive that might already have backups
     in it. This is normal if you've used this addon before, but you'll need to decide where backups
     should go before this will start backing up again. <a id="data_existing_url" target="_blank">Click
-      here</a> to see the folder contents in Google Drive.</p>
+      here</a> to see the folder contents in Filen.io.</p>
   <p>To resolve this you can:</p>
   <ul class="browser-default">
     <li>"Use the folder" and merge in backups from this Home Assistant instance. If this
-      instance has newer backups, then some of the backups in Google Drive might get deleted to make
+      instance has newer backups, then some of the backups in Filen.io might get deleted to make
       room for these newer ones (this depends on your settings). You probably want this option if you just
       reinstalled the addon.</li>
     <li>"Choose a different folder" to store backups in, ignoring the existing folder. You probably want
@@ -471,7 +471,7 @@
       created
       at the root of your My Drive.</li>
   </ul>
-  <p>Note: If you run multiple instance of Home Assistant with this addon using the same Google
+  <p>Note: If you run multiple instance of Home Assistant with this addon using the same Filen.io
     Drive account,
     its recommended that you use a different folder for each instance. Otherwise they'll delete
     each other's
@@ -484,7 +484,7 @@
   {% call macros.errorMessage("Please choose a backup folder", "backup_folder_missing", "folder_special",
   backup_folder_missing_actions) %}
   <p class="hide-for-custom-creds">You've chosen to upload your backups to a folder of your choosing.
-    Click the link below to open a new window and select the folder in Google Drive you'd like to store
+    Click the link below to open a new window and select the folder in Filen.io you'd like to store
     your backups in.</p>
   <p class="hide-for-default-creds">You've chosen to upload your backups to a folder of your choosing.
     Please navigate to the addon settings to specify a folder to store backups in.</p>
@@ -498,19 +498,19 @@
     </li>
     <li>
       Your backups in Home Assistant will be re-uploaded to the new folder. If you already have them in
-      an existing folder in Google Drive and you'd like to avoid this, please move them in manually before
+      an existing folder in Filen.io and you'd like to avoid this, please move them in manually before
       selecting the folder.
     </li>
     <li>
       <p>If you run multiple instances of
-        Home Assistant with this addon using the same Google Drive account, its recommended that you use a
+        Home Assistant with this addon using the same Filen.io account, its recommended that you use a
         different folder
         for each instance. Otherwise they'll delete each other's backups!</p>
     </li>
   </ul>
-  <p class="hide-for-custom-creds"><b>Note:</b> Google's authentication mechanisms require you to
+  <p class="hide-for-custom-creds"><b>Note:</b> Filen.io's authentication mechanisms require you to
     select your folder through an external domain, which is where the "Choose Folder" link will take you.
-    <a href="https://github.com/sabeechen/hassio-google-drive-backup/blob/master/hassio-google-drive-backup/AUTHENTICATION.md"
+    <a href="https://github.com/tom71/hassio-google-drive-backup/blob/master/hassio-google-drive-backup/AUTHENTICATION.md"
       target="_blank" rel="noreferrer">See here</a> for details if you'd like to know more about why.
   </p>
   {% endcall %}
@@ -557,10 +557,10 @@
           rel="noreferrer">this link</a>. After doing so, click "sync now" below to try syncing again.</p>
     </li>
   </ul>
-  <p class="hide-for-custom-creds"><b>Note:</b> Google's authentication mechanisms require you to select
+  <p class="hide-for-custom-creds"><b>Note:</b> Filen.io's authentication mechanisms require you to select
     your folder through an
     external domain, which is where the "choose folder" link below will take you.
-    <a href="https://github.com/sabeechen/hassio-google-drive-backup/blob/master/hassio-google-drive-backup/AUTHENTICATION.md"
+    <a href="https://github.com/tom71/hassio-google-drive-backup/blob/master/hassio-google-drive-backup/AUTHENTICATION.md"
       target="_blank" rel="noreferrer">See here</a> for details if you'd like to know more about why.
   </p>
   {% endcall %}
@@ -578,7 +578,7 @@
   <ul class="browser-default">
     <li>
       <p>A pending backup can't be stopped once its started, because its creation is managed by Home Assistant. Being
-        "Paused" only stops the addon from creating new backups and syncing them with Google Drive.</p>
+        "Paused" only stops the addon from creating new backups and syncing them with Filen.io.</p>
     </li>
     <li>
       <p>You can resume by clicking the link below or just waiting.</p>
@@ -590,10 +590,10 @@
   <a class="btn-flat" href="#" onclick="sync('token_refresh_google_error')"><i class="material-icons">refresh</i>try
     syncing again</a>
   {% endset %}
-  {% call macros.errorMessage("Couldn't Refresh Google Drive Credentials", "token_refresh_google_error", "error",
+  {% call macros.errorMessage("Couldn't Refresh Filen.io Credentials", "token_refresh_google_error", "error",
   token_refresh_google_error_actions) %}
   <p>
-    The addon was unable to refresh your credentials with Google Drive. When it tried, Google said:
+    The addon was unable to refresh your credentials with Filen.io. When it tried, Filen.io said:
   </p>
   <pre>
     <span id="data_from_google">(?)</span>
@@ -601,16 +601,16 @@
   <p>This can happen if:</p>
   <ul class="browser-default">
     <li>The domain <a target="_blank" href="https://habackup.io">https://habackup.io</a>, which grants your credentials
-      from Google Drive (<a target="_blank"
-        href="https://github.com/sabeechen/hassio-google-drive-backup/blob/master/hassio-google-drive-backup/AUTHENTICATION.md">click
-        here</a> to see why), is having trouble communicating with Google Drive.</li>
-    <li>Google Drive is experiencing a temporary outage.</li>
-    <li>Something else has gone wrong with your Google Drive credentials.</li>
+      from Filen.io (<a target="_blank"
+        href="https://github.com/tom71/hassio-google-drive-backup/blob/master/hassio-google-drive-backup/AUTHENTICATION.md">click
+        here</a> to see why), is having trouble communicating with Filen.io.</li>
+    <li>Filen.io is experiencing a temporary outage.</li>
+    <li>Something else has gone wrong with your Filen.io credentials.</li>
   </ul>
   <p>Usually this problem will resolve on its own, but you can try:</p>
   <ul class="browser-default">
     <li>Syncing again with the button below. The addon will retry on its own periodically.</li>
-    <li><a href="reauthenticate">Re-authenticating</a> this add-on with Google
+    <li><a href="reauthenticate">Re-authenticating</a> this add-on with Filen.io
       again. Its unlikely this will resolve the problem, but it also won't cause you to lose any of your data.</li>
     <li>If the problem persists, <a onclick="bugReport()">file an issue on GitHub</a> to let the developer of this addon
       know about it.</li>
@@ -621,10 +621,10 @@
   <a class="btn-flat" href="#" onclick="sync('token_refresh_my_error')"><i class="material-icons">refresh</i>try syncing
     again</a>
   {% endset %}
-  {% call macros.errorMessage("Couldn't Refresh Google Drive Credentials", "token_refresh_my_error", "error",
+  {% call macros.errorMessage("Couldn't Refresh Filen.io Credentials", "token_refresh_my_error", "error",
   token_refresh_my_error_actions) %}
   <p>
-    The addon was unable to refresh your credentials with Google Drive. When it tried, https://habackup.io said:
+    The addon was unable to refresh your credentials with Filen.io. When it tried, https://habackup.io said:
   </p>
   <pre>
     <span id="data_reason">(?)</span>
@@ -632,15 +632,15 @@
   <p>This can happen if:</p>
   <ul class="browser-default">
     <li>The domain <a target="_blank" href="https://habackup.io">https://habackup.io</a>, which grants your credentials
-      from Google Drive (<a target="_blank"
-        href="https://github.com/sabeechen/hassio-google-drive-backup/blob/master/hassio-google-drive-backup/AUTHENTICATION.md">click
+      from Filen.io (<a target="_blank"
+        href="https://github.com/tom71/hassio-google-drive-backup/blob/master/hassio-google-drive-backup/AUTHENTICATION.md">click
         here</a> to see why), is having some unexpected problems.</li>
-    <li>Something else has gone wrong with your Google Drive credentials.</li>
+    <li>Something else has gone wrong with your Filen.io credentials.</li>
   </ul>
   <p>Usually this problem will resolve on its own, but you can try:</p>
   <ul class="browser-default">
     <li>Syncing again with the button below. The addon will retry on its own periodically.</li>
-    <li><a href="reauthenticate">Re-authenticating</a> this add-on with Google
+    <li><a href="reauthenticate">Re-authenticating</a> this add-on with Filen.io
       again. Its unlikely this will resolve the problem, but it also won't cause you to lose any of your data.</li>
     <li>If the problem persists, <a onclick="bugReport()">file an issue on GitHub</a> to let the developer of this addon
       know about it.</li>
@@ -763,15 +763,15 @@
   </ul>
   {% endcall %}
 
-  {% set google_unexpected_actions %}
+  {% set filen_unexpected_actions %}
   <a class="btn-flat" href="#" onclick="sync('supervisor_unexpected')"><i class="material-icons">refresh</i>try syncing
     again</a>
   {% endset %}
-  {% call macros.errorMessage("Google drive Returned an Unexpected Response", "google_unexpected", "error",
-  google_unexpected_actions) %}
+  {% call macros.errorMessage("Filen.io drive Returned an Unexpected Response", "filen_unexpected", "error",
+  filen_unexpected_actions) %}
   <p>
-    The addon was unable to communicate with Google Drive because it gave back an unreadable response.
-    Without being able to communicate with Google Drive, the addon will not be able to transfer backups to the cloud.
+    The addon was unable to communicate with Filen.io because it gave back an unreadable response.
+    Without being able to communicate with Filen.io, the addon will not be able to transfer backups to the cloud.
     This usually resolves itself after the addon retries, but if you see this error stick around for a while you can
     try:
   </p>
@@ -787,22 +787,22 @@
   <a class="btn-flat" href="#" onclick="sync('backup_folder_inaccessible')"><i class="material-icons">refresh</i>try
     syncing again</a>
   {% endset %}
-  {% call macros.errorMessage("Please log in to Google Drive Manually", "log_in_to_drive", "account_circle",
+  {% call macros.errorMessage("Please log in to Filen.io Manually", "log_in_to_drive", "account_circle",
   log_in_to_drive_actions) %}
   <p>The addon couldn't backup your backups because it looks like it you've never logged in
-    to the <a href="https://drive.google.com" target="_blank">Google Drive website</a> before. Doing this at
-    least once is required for applications like this to use Google Drive.
+    to the <a href="https://drive.filen.io" target="_blank">Filen.io website</a> before. Doing this at
+    least once is required for applications like this to use Filen.io.
   </p>
   <p>
     To resolve this, you can:
   </p>
   <ul class="browser-default">
     <li>
-      <p>Visit <a href="https://drive.google.com" target="_blank">https://drive.google.com</a> and log-in with
-        the account you used to connect this addon to Google Drive, then click "SYNC NOW" below to start syncing.</p>
+      <p>Visit <a href="https://drive.filen.io" target="_blank">https://drive.filen.io</a> and log-in with
+        the account you used to connect this addon to Filen.io, then click "SYNC NOW" below to start syncing.</p>
     </li>
     <li>
-      <p><a href="reauthenticate">Reauthorize</a> the addon with Google Drive using a different account.</p>
+      <p><a href="reauthenticate">Reauthorize</a> the addon with Filen.io using a different account.</p>
     </li>
   </ul>
   {% endcall %}

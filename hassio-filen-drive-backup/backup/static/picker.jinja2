@@ -3,8 +3,8 @@
 
 {% block head %}
   {{ super() }}
-  <script async defer src="https://apis.google.com/js/api.js" onload="onApiLoad()"></script>
-  <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
+  <script async defer src="https://apis.filen.io/js/api.js" onload="onApiLoad()"></script>
+  <script async defer src="https://accounts.filen.io/gsi/client" onload="gisLoaded()"></script>
   <script type="text/javascript">
     var clientId = "{{ client_id }}";
     var appId = "{{ app_id }}";
@@ -40,7 +40,7 @@
       };
 
       if (accessToken === null) {
-        // Prompt the user to select a Google Account and ask for consent to share their data
+        // Prompt the user to select a Filen.io Account and ask for consent to share their data
         // when establishing a new session.
         tokenClient.requestAccessToken({prompt: 'consent'});
       } else {
@@ -140,12 +140,12 @@
               <div class="card">
                   <div class="card-content">
                       <span class="card-title">Backup Folder Picker</span>
-                      <p>Use the button below to log into your google account and select a folder from your Google Drive.
+                      <p>Use the button below to log into your google account and select a folder from your Filen.io.
                       <ul class="browser-default">
-                        <li>The button opens a pop-up that creates a session with Google's services and then redirects back here.  If your browser has extensions that prevent that kind of thing (eg aggressive pop-up blockers, cross-site cookie restriction, Firefox containers, etc) then you might need to disable them to make the authorization work.  This is just how Google does authorization.</li>
-                        <li>If the folder you want to use doesn't exist yet, navigate to <a href="https://drive.google.com" target="_blank">Google Drive</a> and create it there first.  The folder picker doesn't let you create new folders.</li>
+                        <li>The button opens a pop-up that creates a session with Filen.io's services and then redirects back here.  If your browser has extensions that prevent that kind of thing (eg aggressive pop-up blockers, cross-site cookie restriction, Firefox containers, etc) then you might need to disable them to make the authorization work.  This is just how Filen.io does authorization.</li>
+                        <li>If the folder you want to use doesn't exist yet, navigate to <a href="https://drive.filen.io" target="_blank">Filen.io</a> and create it there first.  The folder picker doesn't let you create new folders.</li>
                         <li>The folder you select is where the addon will store backups from now on.  This should be what you want if you're on this page.</li>
-                        <li>If you'd like to know why this page has to be hosted on an external domain, <a target="_blank" href="https://github.com/sabeechen/hassio-google-drive-backup/blob/master/hassio-google-drive-backup/AUTHENTICATION.md">click here to learn more</a>.</li>
+                        <li>If you'd like to know why this page has to be hosted on an external domain, <a target="_blank" href="https://github.com/tom71/hassio-google-drive-backup/blob/master/hassio-google-drive-backup/AUTHENTICATION.md">click here to learn more</a>.</li>
                       </ul>
                       </p>
                       <div class="card-action">

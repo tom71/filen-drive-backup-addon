@@ -4,7 +4,7 @@ from firebase_admin import credentials
 from firebase_admin import firestore
 from pathlib import Path
 
-KNWON_ERRORS = ['existing_backup_folder', 'google_dns', 'cancelled', 'google_timeout', 'low_space', 'multiple_deletes']
+KNWON_ERRORS = ['existing_backup_folder', 'filen_dns', 'cancelled', 'filen_timeout', 'low_space', 'multiple_deletes']
 
 
 async def main():

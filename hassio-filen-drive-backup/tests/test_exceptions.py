@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 import backup.exceptions
 import inspect
 import pytest
-from backup.exceptions import GoogleCredGenerateError, KnownError, KnownTransient, SimulatedError, GoogleDrivePermissionDenied, InvalidConfigurationValue, LogicError, ProtocolError, NoBackup, NotUploadable, PleaseWait, UploadFailed, BackupFolderInaccessible, BackupFolderMissingError
+from backup.exceptions import FilenCredGenerateError, KnownError, KnownTransient, SimulatedError, FilenDrivePermissionDenied, InvalidConfigurationValue, LogicError, ProtocolError, NoBackup, NotUploadable, PleaseWait, UploadFailed, BackupFolderInaccessible, BackupFolderMissingError
 from .conftest import ReaderHelper
 
 
@@ -13,7 +13,7 @@ async def test_verify_coverage(ui_server, reader: ReaderHelper):
         KnownError,
         KnownTransient,
         SimulatedError,
-        GoogleDrivePermissionDenied,
+        FilenDrivePermissionDenied,
         InvalidConfigurationValue,
         LogicError,
         NoBackup,
@@ -21,7 +21,7 @@ async def test_verify_coverage(ui_server, reader: ReaderHelper):
         PleaseWait,
         ProtocolError,
         UploadFailed,
-        GoogleCredGenerateError,
+        FilenCredGenerateError,
         BackupFolderInaccessible,
         BackupFolderMissingError,
     ]

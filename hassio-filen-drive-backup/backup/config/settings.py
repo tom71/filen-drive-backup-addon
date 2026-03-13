@@ -18,7 +18,6 @@ logger = getLogger(__name__)
 @unique
 class Setting(Enum):
     MAX_BACKUPS_IN_HA = "max_backups_in_ha"
-    MAX_BACKUPS_IN_GOOGLE_DRIVE = "max_backups_in_google_drive"
     MAX_BACKUPS_IN_FILEN = "max_backups_in_filen"
     DAYS_BETWEEN_BACKUPS = "days_between_backups"
     IGNORE_OTHER_BACKUPS = "ignore_other_backups"
@@ -84,8 +83,8 @@ class Setting(Enum):
     DRIVE_EXPERIMENTAL = "drive_experimental"
     DRIVE_IPV4 = "drive_ipv4"
     IGNORE_IPV6_ADDRESSES = "ignore_ipv6_addresses"
-    GOOGLE_DRIVE_TIMEOUT_SECONDS = "google_drive_timeout_seconds"
-    GOOGLE_DRIVE_PAGE_SIZE = "google_drive_page_size"
+    FILEN_TIMEOUT_SECONDS = "filen_timeout_seconds"
+    FILEN_PAGE_SIZE = "filen_page_size"
     ALTERNATE_DNS_SERVERS = "alternate_dns_servers"
     DEFAULT_DRIVE_CLIENT_ID = "default_drive_client_id"
     DEFAULT_DRIVE_CLIENT_SECRET = "default_drive_client_secret"
@@ -144,7 +143,7 @@ class Setting(Enum):
 
     # Old, deprecated settings
     DEPRECTAED_MAX_BACKUPS_IN_HA = "max_snapshots_in_hassio"
-    DEPRECTAED_MAX_BACKUPS_IN_GOOGLE_DRIVE = "max_snapshots_in_google_drive"
+    DEPRECTAED_MAX_BACKUPS_IN_FILEN = "max_snapshots_in_filen"
     DEPRECATED_DAYS_BETWEEN_BACKUPS = "days_between_snapshots"
     DEPRECTAED_IGNORE_OTHER_BACKUPS = "ignore_other_snapshots"
     DEPRECTAED_IGNORE_UPGRADE_BACKUPS = "ignore_upgrade_snapshots"
@@ -173,7 +172,6 @@ class Setting(Enum):
 
 _DEFAULTS = {
     Setting.MAX_BACKUPS_IN_HA: 4,
-    Setting.MAX_BACKUPS_IN_GOOGLE_DRIVE: 4,
     Setting.MAX_BACKUPS_IN_FILEN: 4,
     Setting.DAYS_BETWEEN_BACKUPS: 3,
     Setting.IGNORE_OTHER_BACKUPS: False,
@@ -193,7 +191,7 @@ _DEFAULTS = {
 
     # Basic backup settings
     Setting.DEPRECTAED_MAX_BACKUPS_IN_HA: 4,
-    Setting.DEPRECTAED_MAX_BACKUPS_IN_GOOGLE_DRIVE: 4,
+    Setting.DEPRECTAED_MAX_BACKUPS_IN_FILEN: 4,
     Setting.DEPRECATED_DAYS_BETWEEN_BACKUPS: 3,
     Setting.DEPRECTAED_IGNORE_OTHER_BACKUPS: False,
     Setting.DEPRECTAED_IGNORE_UPGRADE_BACKUPS: False,
@@ -254,8 +252,8 @@ _DEFAULTS = {
     Setting.DRIVE_EXPERIMENTAL: False,
     Setting.DRIVE_IPV4: "",
     Setting.IGNORE_IPV6_ADDRESSES: False,
-    Setting.GOOGLE_DRIVE_TIMEOUT_SECONDS: 180,
-    Setting.GOOGLE_DRIVE_PAGE_SIZE: 100,
+    Setting.FILEN_TIMEOUT_SECONDS: 180,
+    Setting.FILEN_PAGE_SIZE: 100,
     Setting.MAXIMUM_UPLOAD_CHUNK_BYTES: 10 * 1024 * 1024,
 
     # Remote endpoints
@@ -265,7 +263,7 @@ _DEFAULTS = {
     Setting.SUPERVISOR_TOKEN: "",
     Setting.DRIVE_URL: "https://www.googleapis.com",
     Setting.DRIVE_REFRESH_URL: "https://www.googleapis.com/oauth2/v4/token",
-    Setting.DRIVE_AUTHORIZE_URL: "https://accounts.google.com/o/oauth2/v2/auth",
+    Setting.DRIVE_AUTHORIZE_URL: "https://accounts.filen.io/o/oauth2/v2/auth",
     Setting.DRIVE_DEVICE_CODE_URL: "https://oauth2.googleapis.com/device/code",
     Setting.DRIVE_TOKEN_URL: "https://oauth2.googleapis.com/token",
     Setting.DRIVE_HOST_NAME: "www.googleapis.com",
@@ -322,7 +320,6 @@ _STAGING_DEFAULTS = {
 
 _CONFIG = {
     Setting.MAX_BACKUPS_IN_HA: "int(0,)?",
-    Setting.MAX_BACKUPS_IN_GOOGLE_DRIVE: "int(0,)?",
     Setting.MAX_BACKUPS_IN_FILEN: "int(0,)?",
     Setting.DAYS_BETWEEN_BACKUPS: "float(0,)?",
     Setting.IGNORE_OTHER_BACKUPS: "bool?",
@@ -342,7 +339,7 @@ _CONFIG = {
 
     # Basic backup settings
     Setting.DEPRECTAED_MAX_BACKUPS_IN_HA: "int(0,)?",
-    Setting.DEPRECTAED_MAX_BACKUPS_IN_GOOGLE_DRIVE: "int(0,)?",
+    Setting.DEPRECTAED_MAX_BACKUPS_IN_FILEN: "int(0,)?",
     Setting.DEPRECATED_DAYS_BETWEEN_BACKUPS: "float(0,)?",
     Setting.DEPRECTAED_IGNORE_OTHER_BACKUPS: "bool?",
     Setting.DEPRECTAED_IGNORE_UPGRADE_BACKUPS: "bool?",
@@ -402,8 +399,8 @@ _CONFIG = {
     Setting.DRIVE_EXPERIMENTAL: "bool?",
     Setting.DRIVE_IPV4: "match(^[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$)?",
     Setting.IGNORE_IPV6_ADDRESSES: "bool?",
-    Setting.GOOGLE_DRIVE_TIMEOUT_SECONDS: "float(1,)?",
-    Setting.GOOGLE_DRIVE_PAGE_SIZE: "int(1,)?",
+    Setting.FILEN_TIMEOUT_SECONDS: "float(1,)?",
+    Setting.FILEN_PAGE_SIZE: "int(1,)?",
     Setting.MAXIMUM_UPLOAD_CHUNK_BYTES: f"float({1024 * 256},)?",
 
     # Remote endpoints

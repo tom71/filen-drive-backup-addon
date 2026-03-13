@@ -5,7 +5,7 @@ from injector import inject, singleton
 @singleton
 class TokenBucket:
     """
-    Implements a "leaky bucket" token algorithm, used to limit upload speed to Google Drive.
+    Implements a "leaky bucket" token algorithm, used to limit upload speed to Filen.
     """
     @inject
     def __init__(self, time: Time, capacity, fill_rate, initial_tokens=None):

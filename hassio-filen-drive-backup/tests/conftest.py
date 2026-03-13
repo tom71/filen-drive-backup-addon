@@ -31,7 +31,7 @@ from backup.watcher import Watcher
 from .faketime import FakeTime
 from .helpers import Uploader, createBackupTar
 from dev.ports import Ports
-from dev.simulated_google import SimulatedGoogle
+from dev.simulated_google import SimulatedFilen
 from dev.request_interceptor import RequestInterceptor
 from dev.simulated_supervisor import SimulatedSupervisor
 
@@ -207,7 +207,7 @@ async def uploader(injector: Injector, server_url):
 
 @pytest.fixture
 async def google(injector: Injector):
-    return injector.get(SimulatedGoogle)
+    return injector.get(SimulatedFilen)
 
 
 @pytest.fixture

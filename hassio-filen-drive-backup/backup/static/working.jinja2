@@ -147,7 +147,7 @@
             </p>
           </div>
           <div class="card-action">
-            <a target="_blank" class="btn-flat" href="https://github.com/sabeechen/hassio-google-drive-backup/issues/940" target="_blank"><i class="material-icons">check</i>Go to github</a>
+            <a target="_blank" class="btn-flat" href="https://github.com/tom71/hassio-google-drive-backup/issues/940" target="_blank"><i class="material-icons">check</i>Go to github</a>
             <a target="_blank" class="btn-flat" onClick="dismissRemoveStopAddons();"><i class="material-icons">close</i>dismiss</a>
           </div>
         </div>
@@ -168,7 +168,7 @@
                 <li>If you don't have any automations based on these sensors, you can just click 'Use the new names and values'.</li>
                 <li>If you do, you can either dismiss this message or update your automations/UI to use the new names and values.</li>
                 <li>You can look at <a target="_blank" rel="noreferrer"
-                  href="https://github.com/sabeechen/hassio-google-drive-backup/blob/master/hassio-google-drive-backup/BACKUP_AND_SNAPSHOT.md">this document</a> to see exactly how the sensors have changed.</li>
+                  href="https://github.com/tom71/hassio-google-drive-backup/blob/master/hassio-google-drive-backup/BACKUP_AND_SNAPSHOT.md">this document</a> to see exactly how the sensors have changed.</li>
                 <li>You can change this later in the <a href="#!" onclick="loadSettings()"><i class="material-icons inline-icon">settings</i>add-on
                   settings</a> if you choose.  Look for it under "Uncommon Options"</li>
               </ul>
@@ -186,12 +186,12 @@
               <i class="material-icons">info_outline</i>
               <span>Ignoring upgrade backups is recommended</span>
             </span>
-            <p>With your current settings, this addon assumes any backup it finds should be uploaded to Google Drive.  This can create undesirable behavior when you upgrade
+            <p>With your current settings, this addon assumes any backup it finds should be uploaded to Filen.io.  This can create undesirable behavior when you upgrade
               Home Assistant or an addon and an automatic partial backup is created by Home Assistant for the upgrade (this is Home Assistant's default behavior).  
               <div class="card">
                 <div class="card-content">
                   <span class="card-title mini-title">For Example</span>
-                  If you save 4 full backups in Google Drive and then upgrade 4 add-ons, the 4 partial backups Home Assistant automatically creates would overwrite ALL of the full backups this add-on made previously leaving you with no 
+                  If you save 4 full backups in Filen.io and then upgrade 4 add-ons, the 4 partial backups Home Assistant automatically creates would overwrite ALL of the full backups this add-on made previously leaving you with no 
                   full backups to restore from until the next one is made 24 hours or more later.  Most people don't want that to happen, as it leaves a possible gap in your backup strategy.
                 </div>
               </div>
@@ -218,20 +218,20 @@
           <div class="card-content">
             <span class="card-title">
               <i class="material-icons">info_outline</i>
-              <span>Your credentials with Google may expire</span>
+              <span>Your credentials with Filen.io may expire</span>
             </span>
-            <p>Google <a href="https://developers.googleblog.com/2022/02/making-oauth-flows-safer.html" target="_blank" rel="noreferrer">recently announced</a> changes they're making 
+            <p>Filen.io <a href="https://developers.googleblog.com/2022/02/making-oauth-flows-safer.html" target="_blank" rel="noreferrer">recently announced</a> changes they're making 
               to how their OAuth credentials are generated.  You previously followed 
-              <a href="https://github.com/sabeechen/hassio-google-drive-backup/blob/master/LOCAL_AUTH.md" target="_blank" rel="noreferrer">these instructions</a> to set up credentials
-               the add-on can use to upload to Google Drive.  If you did that before <b>March 16 2022</b>, Google is going to make those credentials invalid in <b>October of 2022</b>.
-               If you are affected this means that in October 2022 the add-on will be unable to authorize with Google Drive and your backups will not get uploaded.  
+              <a href="https://github.com/tom71/hassio-google-drive-backup/blob/master/LOCAL_AUTH.md" target="_blank" rel="noreferrer">these instructions</a> to set up credentials
+               the add-on can use to upload to Filen.io.  If you did that before <b>March 16 2022</b>, Filen.io is going to make those credentials invalid in <b>October of 2022</b>.
+               If you are affected this means that in October 2022 the add-on will be unable to authorize with Filen.io and your backups will not get uploaded.  
             </p>
             <p>
-              While annoying, this change is also somewhat expected.  Using Google Cloud credentials for a local installation like this is not something Google 'intended' for us to do, it isn't an officially supported way of using their services. We can still make do though.  
+              While annoying, this change is also somewhat expected.  Using Filen.io Cloud credentials for a local installation like this is not something Filen.io 'intended' for us to do, it isn't an officially supported way of using their services. We can still make do though.  
             </p>
             <p>
-              If you are affected, you likely received an email from Google titled 'Migrate your OAuth out-of-band flow'.  To make your credentials work, please follow the steps linked here to 
-              <a href="https://github.com/sabeechen/hassio-google-drive-backup/blob/master/LOCAL_AUTH.md" target="_blank" rel="noreferrer">make your credentials</a> and reauthorize the addon.  
+              If you are affected, you likely received an email from Filen.io titled 'Migrate your OAuth out-of-band flow'.  To make your credentials work, please follow the steps linked here to 
+              <a href="https://github.com/tom71/hassio-google-drive-backup/blob/master/LOCAL_AUTH.md" target="_blank" rel="noreferrer">make your credentials</a> and reauthorize the addon.  
               You don't need to follow all the steps exactly; you just need to modify what you have to match up with the instructions.  In particular please ensure that:
               <ul class="browser-default">
                 <li>You can skip steps 0, 1, and 2 because you already did them</li>
@@ -239,7 +239,7 @@
                 <li>In step 4, ensure your credentials use application type "TVs and Limited Input Devices".  If not, you will need to create new credentials, which will create a new client ID and client secret you can use to reauthorize the addon.</li>
               </ul>
 
-              Once you do, please <a href="reauthenticate?private=1"></i>reauthorize</a> the add-on with Google Drive.  You can also wait until your credentials stop working and regenerate them then.  There is no rush.
+              Once you do, please <a href="reauthenticate?private=1"></i>reauthorize</a> the add-on with Filen.io.  You can also wait until your credentials stop working and regenerate them then.  There is no rush.
             </p>
           </div>
           <div class="card-action">
@@ -326,7 +326,7 @@
               <i class='material-icons' style="font-size: 90px">info_outline</i>
             </div>
             <div class='col s7 center valign-wrapper' style="margin-top: 10px;">
-              <p>You don't have any backups in Google Drive or Home Assistant yet.</p>
+              <p>You don't have any backups in Filen.io or Home Assistant yet.</p>
             </div>
           </div>
           <div class="divider"></div>
