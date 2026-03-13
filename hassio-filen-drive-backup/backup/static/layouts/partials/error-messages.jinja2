@@ -600,18 +600,14 @@
   </pre>
   <p>This can happen if:</p>
   <ul class="browser-default">
-    <li>The domain <a target="_blank" href="https://habackup.io">https://habackup.io</a>, which grants your credentials
-      from Filen.io (<a target="_blank"
-        href="https://github.com/tom71/hassio-filen-drive-backup/blob/master/hassio-filen-drive-backup/AUTHENTICATION.md">click
-        here</a> to see why), is having trouble communicating with Filen.io.</li>
     <li>Filen.io is experiencing a temporary outage.</li>
-    <li>Something else has gone wrong with your Filen.io credentials.</li>
+    <li>Your configured Filen API key is invalid, expired, or was revoked.</li>
+    <li>The configured Filen gateway endpoint is unavailable.</li>
   </ul>
   <p>Usually this problem will resolve on its own, but you can try:</p>
   <ul class="browser-default">
     <li>Syncing again with the button below. The addon will retry on its own periodically.</li>
-    <li><a href="reauthenticate">Re-authenticating</a> this add-on with Filen.io
-      again. Its unlikely this will resolve the problem, but it also won't cause you to lose any of your data.</li>
+    <li>Generating a new Filen API key and updating it in the add-on settings.</li>
     <li>If the problem persists, <a onclick="bugReport()">file an issue on GitHub</a> to let the developer of this addon
       know about it.</li>
   </ul>
@@ -624,24 +620,20 @@
   {% call macros.errorMessage("Couldn't Refresh Filen.io Credentials", "token_refresh_my_error", "error",
   token_refresh_my_error_actions) %}
   <p>
-    The addon was unable to refresh your credentials with Filen.io. When it tried, https://habackup.io said:
+    The addon was unable to use your configured Filen.io credentials. The request failed with:
   </p>
   <pre>
     <span id="data_reason">(?)</span>
   </pre>
   <p>This can happen if:</p>
   <ul class="browser-default">
-    <li>The domain <a target="_blank" href="https://habackup.io">https://habackup.io</a>, which grants your credentials
-      from Filen.io (<a target="_blank"
-        href="https://github.com/tom71/hassio-filen-drive-backup/blob/master/hassio-filen-drive-backup/AUTHENTICATION.md">click
-        here</a> to see why), is having some unexpected problems.</li>
-    <li>Something else has gone wrong with your Filen.io credentials.</li>
+    <li>Your configured Filen API key is invalid, expired, or was revoked.</li>
+    <li>The configured Filen gateway endpoint is unavailable.</li>
   </ul>
   <p>Usually this problem will resolve on its own, but you can try:</p>
   <ul class="browser-default">
     <li>Syncing again with the button below. The addon will retry on its own periodically.</li>
-    <li><a href="reauthenticate">Re-authenticating</a> this add-on with Filen.io
-      again. Its unlikely this will resolve the problem, but it also won't cause you to lose any of your data.</li>
+    <li>Generating a new Filen API key and updating it in the add-on settings.</li>
     <li>If the problem persists, <a onclick="bugReport()">file an issue on GitHub</a> to let the developer of this addon
       know about it.</li>
   </ul>

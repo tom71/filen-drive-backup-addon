@@ -5,6 +5,7 @@ const CONTRIBUTOR_COMMIT_URL = "https://github.com/tom71/hassio-filen-drive-back
 const CONTRIBUTORS_COUNT_TO_SHOW = 14;
 
 const EXTRA_CONTRIBUTORS = {
+  "cristo1": "Current maintainer.",
   "sabeechen": "Original author. Did most of this.",
   "ericmatte": "Redesigned the UI with divine HTML and CSS wizardry.",
   "jhampson-dbre": "Fixed a really nasty timing bug.",

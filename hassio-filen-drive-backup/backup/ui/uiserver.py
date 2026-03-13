@@ -141,23 +141,10 @@ class UiServer(Trigger, Startable):
         status["backup_name_template"] = self.config.get(
             Setting.BACKUP_NAME)
         status['sources'] = self._coord.buildBackupMetrics()
-        use_filen = self.config.get(Setting.ENABLE_FILEN_UPLOAD)
-        auth_path = "/filen/authenticate" if use_filen else "/drive/authorize"
-        picker_path = "/filen/picker" if use_filen else "/drive/picker"
-
-        status['authenticate_url'] = str(URL(self.config.get(Setting.AUTHORIZATION_HOST)).with_path(auth_path))
-        choose_url = str(URL(self.config.get(Setting.AUTHORIZATION_HOST)).with_path(picker_path).with_query({
-            "bg": self.config.get(Setting.BACKGROUND_COLOR),
-            "ac": self.config.get(Setting.ACCENT_COLOR),
-            "version": VERSION
-        }))
-        status['choose_folder_url'] = str(choose_url)
-        status['authenticate_url_filen'] = str(URL(self.config.get(Setting.AUTHORIZATION_HOST)).with_path("/filen/authenticate"))
-        status['choose_folder_url_filen'] = str(URL(self.config.get(Setting.AUTHORIZATION_HOST)).with_path('/filen/picker').with_query({
-            "bg": self.config.get(Setting.BACKGROUND_COLOR),
-            "ac": self.config.get(Setting.ACCENT_COLOR),
-            "version": VERSION
-        }))
+        status['authenticate_url'] = "https://docs.filen.io/docs/api/guides/authentication"
+        status['choose_folder_url'] = "https://drive.filen.io/drive/my-drive"
+        status['authenticate_url_filen'] = "https://docs.filen.io/docs/api/guides/authentication"
+        status['choose_folder_url_filen'] = "https://drive.filen.io/drive/my-drive"
         status['dns_info'] = self._global_info.getDnsInfo()
         status['enable_filen_upload'] = self.config.get(
             Setting.ENABLE_FILEN_UPLOAD)

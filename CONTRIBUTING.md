@@ -2,7 +2,7 @@
 
 ## About the project
 
-The project is mostly maintained by Stephen Beechen (stephen@beechens.com) whom you can reach out to for guidance. Before digging in to this, you might be helpful to familiarize yourself with some of the technologies used in the project.
+The project is mostly maintained by Thomas Cristo (github@cristo1.de) whom you can reach out to for guidance. Before digging in to this, you might be helpful to familiarize yourself with some of the technologies used in the project.
 
 - [Developing Addons for Home Assistant](https://developers.home-assistant.io/docs/add-ons) - Useful to understand how addons work.
 - [Python](https://www.python.org/) - The addon is written in Python 3.11 and makes heavy use of the asyncio framework.
@@ -17,7 +17,7 @@ The project is mostly maintained by Stephen Beechen (stephen@beechens.com) whom 
    - Breaking up a large change into smaller manageable pieces make things easier.
    - You can reach out to me in any of these ways to talk about a change you're considering:
      - Preferred: [File an issue on github](https://github.com/tom71/hassio-filen-drive-backup/issues) proposing your changes.
-     - Next best: Email: stephen@beechens.com
+    - Next best: Email: github@cristo1.de
      - Acceptable but worst: Home Assistant Forums: [@sabeechen](https://community.home-assistant.io/u/tom71/summary)
  - Any submissions to the dev branch get automatically built and pushed to a staging version of the addon that you can install using [this repository](https://github.com/tom71/hgdb-dev-staging).  Its identical to the "Production" addon but talks to [https://dev.habackup.io](https://dev.habackup.io) instead of [https://habackup.io](https://habackup.io).
  - Releases of the addon are made as-needed for bug fixes and new features.  If you've made a signifigant change to the addon, you can expect me to communicate to you when you can expect to see it released.  Important fixes will often demand an out-of-schedule rushed release.
