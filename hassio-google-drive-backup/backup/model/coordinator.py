@@ -244,7 +244,7 @@ class Coordinator(Trigger):
             raise LogicError("This backup already exists in Home Assistant")
         if not backup_dest:
             # Unreachable?
-            raise LogicError("This backup isn't in Google Drive")
+            raise LogicError("This backup isn't in the remote destination")
         created = await self._model.source.save(backup, await self._model.dest.read(backup))
         backup.addSource(created)
         self._updateFreshness()
