@@ -19,8 +19,7 @@ This is for you if you want to quickly set up a backup strategy without much fus
 - Notifies you when something goes wrong with your backups.
 - Super easy installation and configuration.
 - Privacy-centric design philosophy.
-- Comprehensive documentation.
-- _Most certainly_ doesn't mine bitcoin on your home automation server. Definitely no.  Or does it?
+- Comprehensive documentation.
 
 ### The Upsell
 This addon has been featured by %YOUR_FAVORITE_HA_YOUTUBER% and is often listed as an _essential_ addon when starting with Home Assistant.  Here are some videos about it from others if you'd like to get an idea of what using it looks like or what the community thinks:
@@ -33,10 +32,7 @@ This addon has been featured by %YOUR_FAVORITE_HA_YOUTUBER% and is often listed 
 >[<img src="images/bmc-button.svg" width=150 height=40 style="margin: 5px"/>](https://www.buymeacoffee.com/sabeechen)
 >[<img src="images/paypal-button.svg" width=150 height=40 style="margin: 5px"/>](https://www.paypal.com/paypalme/stephenbeechen)
 >[<img src="images/patreon-button.svg" width=150 height=40 style="margin: 5px"/>](https://www.patreon.com/bePatron?u=4064183)
->[<img src="images/github-sponsors-button.svg" width=150 height=40 style="margin: 5px"/>](https://github.com/sponsors/sabeechen)
->[<img src="images/monero-button.svg" width=150 height=40 style="margin: 5px"/>](donate-crypto.md)
->[<img src="images/bitcoin-button.svg" width=150 height=40 style="margin: 5px"/>](donate-crypto.md)
->[<img src="images/ethereum-button.svg" width=150 height=40 style="margin: 5px"/>](donate-crypto.md)
+>[<img src="images/github-sponsors-button.svg" width=150 height=40 style="margin: 5px"/>](https://github.com/sponsors/sabeechen)
 
 
 
