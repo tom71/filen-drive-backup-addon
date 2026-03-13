@@ -19,7 +19,8 @@ This is for you if you want to quickly set up a backup strategy without much fus
 - Notifies you when something goes wrong with your backups.
 - Super easy installation and configuration.
 - Privacy-centric design philosophy.
-- Comprehensive documentation.
+- Comprehensive documentation.
+
 
 ### The Upsell
 This addon has been featured by %YOUR_FAVORITE_HA_YOUTUBER% and is often listed as an _essential_ addon when starting with Home Assistant.  Here are some videos about it from others if you'd like to get an idea of what using it looks like or what the community thinks:
@@ -32,7 +33,10 @@ This addon has been featured by %YOUR_FAVORITE_HA_YOUTUBER% and is often listed 
 >[<img src="images/bmc-button.svg" width=150 height=40 style="margin: 5px"/>](https://www.buymeacoffee.com/sabeechen)
 >[<img src="images/paypal-button.svg" width=150 height=40 style="margin: 5px"/>](https://www.paypal.com/paypalme/stephenbeechen)
 >[<img src="images/patreon-button.svg" width=150 height=40 style="margin: 5px"/>](https://www.patreon.com/bePatron?u=4064183)
->[<img src="images/github-sponsors-button.svg" width=150 height=40 style="margin: 5px"/>](https://github.com/sponsors/sabeechen)
+>[<img src="images/github-sponsors-button.svg" width=150 height=40 style="margin: 5px"/>](https://github.com/sponsors/sabeechen)
+
+
+
 
 
 
@@ -54,7 +58,7 @@ This addon has been featured by %YOUR_FAVORITE_HA_YOUTUBER% and is often listed 
 
 6. The "Getting Started" page will tell you how many backups you have and what it will do with them once you connect it to Filen.io. You can click `Settings` to change those options through the add-on (which is the recommended way, they take effect immediately), or update them from the page where you installed the add-on as described below (also works, restart for them to take effect).
 
-7. Click the `Authenticate with Drive` button to link the add-on with your Filen.io account. Alternatively, you can generate your [own Google API credentials](#can-i-use-my-own-google-api-information-to-authenticate-instead-of-yours), though the process is not simple.
+7. Open the add-on settings and set your Filen.io API key in `filen_api_key`.
 
 8. You should be redirected automatically to the backup status page. Here you can make a new backups, see the progress of uploading to Filen.io, etc. You're done!
 
@@ -93,7 +97,7 @@ Redundancy is the foundation of reliability. With local backups, Filen.io's back
 The backups this addon creates are the same backups that Home Assistant makes by itself and can be restored using any of the methods documented elsewhere.  Here are few pointers to get you started.
 - If you can still get to the addon's web-UI then select the backup and click "Load into Home Assistant" have it copied back into Home Assistant.
 - If not (eg, maybe your hard drive died and you're starting over):
-  - Download one of the backups you've previously created from [Filen.io](https://drive.google.com).
+  - Download one of the backups you've previously created from Filen.io.
   - On whatever hardware you're using to run Home Assistant now, follow the [normal instructions](https://www.home-assistant.io/getting-started/) to install Home Assistant.
   - Once it's running (but before you create a user), click the link on the Home Assistant setup page that says "Alternatively you can restore from a previous backup" and upload the backup you downloaded from Filen.io.
 - If you've got a backup that you'd like to restore to an already set up Home Assistant instance that doesn't already have this addon installed, you'll need to use something like the [Samba Addon](https://www.home-assistant.io/hassio/haos_common_tasks/#installing-and-using-the-samba-add-on) to copy a backup downloaded from Filen.io into the /backup folder.  
@@ -213,7 +217,7 @@ The config option `backup_name` can be changed to give backups a different name 
 
 Most likely no. I started this project to solve a specific problem I had, storing backups in a redundant cloud provider without having to write a bunch of buggy logic and automations. It might seem like a small change to make this work with another cloud provider, but trust me. I wrote this version of it, and it's not a simple change. I don't have the time to do it.
 
-### But Google reads my emails!
+### But cloud providers can read metadata!
 
 Maybe. You can encrypt your backups by giving a password in the add-on's options.
 
@@ -222,16 +226,16 @@ Maybe. You can encrypt your backups by giving a password in the add-on's options
 On a matter of principle, I only keep track of and store information necessary for the add-on to function. To the best of my knowledge the scope of this is:
 
 - You can opt-in to sending error reports from the add-on sent to a database maintained by me. This includes the full text of the error's stack trace, the error message, and the version of the add-on you're running. This helps notice problems with new releases but leaving it off (the default unless you turn it on) doesn't affect the functionality of the add-on in any way.
-- Once authenticated with Google, your Google credentials are only stored locally on your Home Assistant instance. This isn't your actual username and password, only an opaque token returned from Google used to verify that you previously gave the Add-on permission to access your Filen.io. Your password is never seen by me or the add-on. You can read more about how authentication with Google is accomplished [here](https://github.com/tom71/hassio-filen-drive-backup/blob/master/hassio-filen-drive-backup/AUTHENTICATION.md).
-- The add-on has access to the files in Filen.io it created, which is the 'Home Assistant Backups' folder and any backups it uploads. See the https://www.googleapis.com/auth/drive.file scope in the [Drive REST API v3 Documentation](https://developers.google.com/drive/api/v3/about-auth) for details, this is the only scope the add-on requests for your account.
-- Google stores a history of information about the number of requests, number of errors, and latency of requests made by this Add-on and makes a graph of that visible to me. This is needed because Google only gives me a certain quota for requests shared between all users of the add-on, so I need to be aware if someone is abusing it.
+- The add-on stores your Filen API key locally in Home Assistant configuration.
+- The add-on only accesses files and folders it needs for backup and restore operations.
+- If enabled, error reports only include technical troubleshooting data (for example stack traces and addon version).
 - The Add-on is distributed as a Docker container hosted on Docker Hub, which is how almost all add-ons work. Docker keeps track of how many people have requested an image and makes that information publicly visible.
 
 This invariably means that I have a very limited ability to see how many people are using the add-on or if it is functioning well. If you do like it, feel free to shoot me an email at [stephen@beechens.com](mailto:stephen@beechens.com) or star this repo on GitHub, it helps keep me motivated. If you run into problems or think a new feature would be nice, file an issue on GitHub.
 
-### Can I use my own Google API information to authenticate instead of yours?
+### Can I use my own Filen credentials?
 
-On the first "Getting Started" page of the add-on underneath the "Authenticate with Filen.io" button is a link that lets you enter your own `Client Id` and `Client Sercet` to authenticate with Filen.io. You can get back to that page by going to "Actions" -> "Reauthorize Filen.io" from the add-on's web UI if you've already connected it previously. Instructions are also provided for those who are unfamiliar with the process, it's tedious to complete but ensures the add-on's communication is only between you and Filen.io.
+Yes. This add-on is designed to use your own Filen API key directly. Open add-on settings and set `filen_api_key`.
 
 ### Can I permanently save a backup so it doesn't get cleaned up?
 
@@ -252,7 +256,7 @@ You'll need to take care to ensure you don't configure this to blow up your File
 
 ### I want my backups to sync to my Desktop computer too
 
-That's not a question but you can use [Filen.io Backup & Sync]([https://www.google.com/drive/download/) to download anything in your Filen.io to your desktop/laptop automatically.
+That's not a question but you can use the official Filen desktop client to sync data to your desktop or laptop.
 
 ### I configured this to only keep 4 backups in Drive and Home Assistant, but sometimes I can see there are 5?
 
