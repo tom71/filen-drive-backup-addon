@@ -10,7 +10,7 @@ COPY config.json /usr/local/lib/python3.11/site-packages/config.json
 
 # Install server python requirements
 RUN pip3 install --trusted-host pypi.python.org -r requirements-server.txt
-RUN pip3 install .
+RUN pip3 install --break-system-packages .
 
 WORKDIR /
 ENTRYPOINT ["python3", "-m", "backup.server"]

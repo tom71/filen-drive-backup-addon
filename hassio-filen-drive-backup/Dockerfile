@@ -4,7 +4,7 @@ WORKDIR /app
 COPY . /app
 RUN chmod +x addon_deps.sh
 RUN ./addon_deps.sh
-RUN pip3 install .
+RUN pip3 install --break-system-packages .
 COPY config.json /usr/local/lib/python3.11/site-packages/config.json
 
 EXPOSE 1627
