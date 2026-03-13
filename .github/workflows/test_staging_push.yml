@@ -37,36 +37,39 @@ jobs:
       uses: home-assistant/builder@master
       with:
         args: |
-          --all \
+          --amd64 \
+          --aarch64 \
           --target dev/hassio-google-drive-backup/hassio-google-drive-backup \
           --docker-hub "ghcr.io/tom71"
 
     - name: Wait before retry
-      if: steps.publish_attempt_1.outcome == 'failure'
+      if: ${{ steps.publish_attempt_1.outcome == 'failure' }}
       run: sleep 15
 
     - name: Publish Staging Addon image (attempt 2)
       id: publish_attempt_2
-      if: steps.publish_attempt_1.outcome == 'failure'
+      if: ${{ steps.publish_attempt_1.outcome == 'failure' }}
       continue-on-error: true
       uses: home-assistant/builder@master
       with:
         args: |
-          --all \
+          --amd64 \
+          --aarch64 \
           --target dev/hassio-google-drive-backup/hassio-google-drive-backup \
           --docker-hub "ghcr.io/tom71"
 
     - name: Wait before final retry
-      if: steps.publish_attempt_1.outcome == 'failure' && steps.publish_attempt_2.outcome == 'failure'
+      if: ${{ steps.publish_attempt_1.outcome == 'failure' && steps.publish_attempt_2.outcome == 'failure' }}
       run: sleep 30
 
     - name: Publish Staging Addon image (attempt 3)
       id: publish_attempt_3
-      if: steps.publish_attempt_1.outcome == 'failure' && steps.publish_attempt_2.outcome == 'failure'
+      if: ${{ steps.publish_attempt_1.outcome == 'failure' && steps.publish_attempt_2.outcome == 'failure' }}
       uses: home-assistant/builder@master
       with:
         args: |
-          --all \
+          --amd64 \
+          --aarch64 \
           --target dev/hassio-google-drive-backup/hassio-google-drive-backup \
           --docker-hub "ghcr.io/tom71"
 
@@ -75,13 +78,17 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
           set -e
-          for pkg in hassio-filen-drive-backup-amd64 hassio-filen-drive-backup-aarch64 hassio-filen-drive-backup-armv7 hassio-filen-drive-backup-i386; do
+          for pkg in hassio-filen-drive-backup-amd64 hassio-filen-drive-backup-aarch64; do
             code=$(curl -s -o /tmp/ghcr_visibility_resp.json -w "%{http_code}" \
               -X PATCH \
               -H "Authorization: Bearer ${GITHUB_TOKEN}" \
               -H "Accept: application/vnd.github+json" \
               "https://api.github.com/user/packages/container/${pkg}/visibility" \
               -d '{"visibility":"public"}')
+            if [ "$code" = "404" ]; then
+              echo "Package ${pkg} not found yet, skipping visibility update."
+              continue
+            fi
             if [ "$code" != "200" ] && [ "$code" != "201" ]; then
               echo "Visibility update failed for ${pkg} (HTTP ${code})."
               cat /tmp/ghcr_visibility_resp.json
