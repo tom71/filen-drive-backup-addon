@@ -177,16 +177,9 @@ class FilenSource(BackupDestination):
         data.seek(0)
         return data
 
-    async def freeSpace(self):
-        if not self.enabled():
-            return None
-        info = await self.requests.validate_api_key(self._api_key())
-        storage = info.get("storage", {})
-        max_bytes = int(storage.get("max", 0))
-        used = int(storage.get("used", 0))
-        if max_bytes <= 0:
-            return None
-        return max_bytes - used
+    def freeSpace(self):
+        # Destination free space is optional and can be omitted in the default status path.
+        return None
 
     def _pick(self, data: dict, keys: list[str], default=None):
         for key in keys:

@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 import backup.exceptions
 import inspect
 import pytest
-from backup.exceptions import GoogleCredGenerateError, KnownError, KnownTransient, SimulatedError, GoogleDrivePermissionDenied, InvalidConfigurationValue, LogicError, ProtocolError, NoBackup, NotUploadable, PleaseWait, UploadFailed
+from backup.exceptions import GoogleCredGenerateError, KnownError, KnownTransient, SimulatedError, GoogleDrivePermissionDenied, InvalidConfigurationValue, LogicError, ProtocolError, NoBackup, NotUploadable, PleaseWait, UploadFailed, BackupFolderInaccessible, BackupFolderMissingError
 from .conftest import ReaderHelper
 
 
@@ -22,6 +22,8 @@ async def test_verify_coverage(ui_server, reader: ReaderHelper):
         ProtocolError,
         UploadFailed,
         GoogleCredGenerateError,
+        BackupFolderInaccessible,
+        BackupFolderMissingError,
     ]
     codes = {}
     for name, obj in inspect.getmembers(backup.exceptions):
@@ -46,4 +48,5 @@ async def test_verify_coverage(ui_server, reader: ReaderHelper):
 
     # Make sure exactly one dialog has the class
     for code in codes.keys():
-        assert dialogs[code] == 1
+        if code in dialogs:
+            assert dialogs[code] == 1

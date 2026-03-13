@@ -15,7 +15,7 @@ from injector import (ClassAssistedBuilder, Injector, Module, inject, provider,
 from backup.config import Config, Setting
 from backup.model import Coordinator
 from dev.simulationserver import SimulationServer
-from backup.drive import DriveRequests, DriveSource, FolderFinder, AuthCodeQuery
+from backup.filen import FilenRequests, FilenSource, FilenFolderFinder
 from backup.util import GlobalInfo, Estimator, Resolver, DataCache
 from backup.ha import HaRequests, HaSource, HaUpdater
 from backup.logger import reset
@@ -23,7 +23,7 @@ from backup.model import DummyBackup, DestinationPrecache, Model
 from backup.time import Time
 from backup.module import BaseModule
 from backup.debugworker import DebugWorker
-from backup.creds import Creds, DriveRequester
+from backup.creds import Creds
 from backup.server import ErrorStore
 from backup.ha import AddonStopper
 from backup.ui import UiServer
@@ -152,6 +152,7 @@ async def generate_config(server_url: URL, ports, cleandir):
         Setting.SUPERVISOR_TOKEN: "test_header",
         Setting.SECRETS_FILE_PATH: "secrets.yaml",
         Setting.CREDENTIALS_FILE_PATH: "credentials.dat",
+        Setting.FILEN_FOLDER_FILE_PATH: "filen_folder.dat",
         Setting.FOLDER_FILE_PATH: "folder.dat",
         Setting.RETAINED_FILE_PATH: "retained.json",
         Setting.ID_FILE_PATH: "id.json",
@@ -161,6 +162,9 @@ async def generate_config(server_url: URL, ports, cleandir):
         Setting.DEFAULT_DRIVE_CLIENT_ID: "test_client_id",
         Setting.DEFAULT_DRIVE_CLIENT_SECRET: "test_client_secret",
         Setting.BACKUP_DIRECTORY_PATH: os.path.join(cleandir, "backups"),
+        Setting.FILEN_GATEWAY_URL: str(server_url),
+        Setting.FILEN_API_KEY: "",
+        Setting.ENABLE_FILEN_UPLOAD: False,
         Setting.PORT: ports.ui,
         Setting.INGRESS_PORT: ports.ingress,
         Setting.BACKUP_STARTUP_DELAY_MINUTES: 0,
@@ -269,11 +273,6 @@ async def estimator(injector, fs):
 
 
 @pytest.fixture
-async def device_code(injector):
-    return injector.get(AuthCodeQuery)
-
-
-@pytest.fixture
 async def error_store(injector):
     return injector.get(ErrorStore)
 
@@ -353,7 +352,7 @@ async def drive_creds(injector):
 
 @pytest.fixture
 async def drive(injector, server, session):
-    return injector.get(DriveSource)
+    return injector.get(FilenSource)
 
 
 @pytest.fixture
@@ -368,19 +367,7 @@ async def ha_requests(injector, server):
 
 @pytest.fixture
 async def drive_requests(injector, server):
-    return injector.get(DriveRequests)
-
-
-@pytest.fixture
-async def drive_requester(injector, server):
-    return injector.get(DriveRequester)
-
-
-@pytest.fixture(autouse=True)
-def verify_closed_responses(drive_requester: DriveRequester):
-    yield "unused"
-    for resp in drive_requester.all_resposnes:
-        assert resp.closed
+    return injector.get(FilenRequests)
 
 
 @pytest.fixture
@@ -400,7 +387,7 @@ async def debug_worker(injector):
 
 @pytest.fixture()
 async def folder_finder(injector):
-    return injector.get(FolderFinder)
+    return injector.get(FilenFolderFinder)
 
 
 @pytest.fixture()

@@ -13,6 +13,7 @@ class FilenFolderFinder():
     def __init__(self, config: Config, requests: FilenRequests):
         self.config = config
         self.requests = requests
+        self._use_existing = None
 
     async def get(self, api_key: str) -> str:
         cached = self._read_cached_folder()
@@ -34,6 +35,18 @@ class FilenFolderFinder():
     def reset(self):
         if File.exists(self.config.get(Setting.FILEN_FOLDER_FILE_PATH)):
             File.delete(self.config.get(Setting.FILEN_FOLDER_FILE_PATH))
+
+    def resolveExisting(self, val):
+        # Retained for UI compatibility. Filen currently only has one target folder mode.
+        self._use_existing = val
+
+    async def save(self, folder_uuid: str) -> None:
+        if folder_uuid is None:
+            return
+        self._save_cached_folder(str(folder_uuid))
+
+    def getCachedFolder(self) -> str | None:
+        return self._read_cached_folder()
 
     def _read_cached_folder(self) -> str | None:
         path = self.config.get(Setting.FILEN_FOLDER_FILE_PATH)

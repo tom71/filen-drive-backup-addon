@@ -10,12 +10,12 @@ from typing import Any, Dict
 
 from aiohttp import BasicAuth, hdrs, web, ClientSession, ClientResponseError
 from aiohttp.web import HTTPException, Request, HTTPSeeOther, HTTPNotFound
-from injector import ClassAssistedBuilder, ProviderOf, inject, singleton
+from injector import inject, singleton
 
 from backup.config import Config, Setting, CreateOptions, BoolValidator, Startable, Version, VERSION
 from backup.const import SOURCE_GOOGLE_DRIVE, SOURCE_FILEN, SOURCE_HA, GITHUB_BUG_TEMPLATE
 from backup.model import Coordinator, Backup, AbstractBackup
-from backup.exceptions import KnownError, GoogleCredGenerateError, ensureKey
+from backup.exceptions import KnownError, ensureKey
 from backup.util import GlobalInfo, Estimator, DataCache, UpgradeFlags
 from backup.file import File
 from backup.ha import HaSource, PendingBackup, BACKUP_NAME_KEYS, HaRequests, HaUpdater
@@ -23,17 +23,14 @@ from backup.ha import Password
 from backup.time import Time
 from backup.worker import Trigger
 from backup.logger import getLogger, getHistory, TraceLogger
-from backup.creds import Exchanger, Creds
+from backup.creds import Creds
 from backup.debugworker import DebugWorker
-from backup.drive import FolderFinder, AuthCodeQuery
+from backup.filen import FilenFolderFinder
 from backup.const import FOLDERS
 from .debug import Debug
 from yarl import URL
 
 logger = getLogger(__name__)
-
-# Used to Google's oauth verification
-SCOPE: str = 'https://www.googleapis.com/auth/drive.file'
 
 MIME_TEXT_HTML = "text/html"
 MIME_JSON = "application/json"
@@ -45,17 +42,14 @@ class UiServer(Trigger, Startable):
     @inject
     def __init__(self, debug: Debug, coord: Coordinator, ha_source: HaSource, harequests: HaRequests,
                  time: Time, config: Config, global_info: GlobalInfo, estimator: Estimator,
-                 session: ClientSession, exchanger_builder: ClassAssistedBuilder[Exchanger],
-                 debug_worker: DebugWorker, folder_finder: FolderFinder, data_cache: DataCache,
-                 haupdater: HaUpdater, custom_auth_provider: ProviderOf[AuthCodeQuery]):
+                 session: ClientSession,
+                 debug_worker: DebugWorker, folder_finder: FilenFolderFinder, data_cache: DataCache,
+                 haupdater: HaUpdater):
         super().__init__()
         # Currently running server tasks
         self.runners = []
-        self.exchanger_builder = exchanger_builder
         self._coord = coord
         self._time = time
-        self.custom_auth_provider = custom_auth_provider
-        self.manual_exchanger: Exchanger = None
         self.config: Config = config
         self.auth_cache: Dict[str, Any] = {}
         self.last_log_index = 0
@@ -74,9 +68,6 @@ class UiServer(Trigger, Startable):
         self.ignore_other_turned_on = False
         self._data_cache = data_cache
         self._haupdater = haupdater
-        self._check_creds_loop: asyncio.Task = None
-        self._check_creds_error: Exception = None
-        self._device_code_authorizer: AuthCodeQuery = None
         self._upload_event = asyncio.Event()
 
     def name(self):
@@ -252,49 +243,15 @@ class UiServer(Trigger, Startable):
             })
         return addons
 
-    async def manualCredCheckLoop(self, auth: AuthCodeQuery):
-        try:
-            creds = await auth.waitForPermission()
-            self._coord.saveCreds(creds)
-            self._data_cache.addFlag(UpgradeFlags.NOTIFIED_ABOUT_OOB_FLOW)
-        except asyncio.CancelledError:
-            # Cancelled, thats fine
-            pass
-        except Exception as e:
-            self._check_creds_error = e
-
     async def checkManualAuth(self, request: Request):
-        if self._check_creds_error is not None:
-            raise self._check_creds_error
-        elif self._device_code_authorizer is not None:
-            return web.json_response({
-                'message': "Waiting for you to authorize the add-on.",
-                'auth_url': self._device_code_authorizer.verification_url,
-                'code': self._device_code_authorizer.user_code,
-                'expires': self._time.formatDelta(self._device_code_authorizer.expiration)
-            })
-        else:
-            return web.json_response({
-                'message': "No request for authorization is in progress."
-            })
+        # Legacy compatibility endpoint: manual OAuth is not used with Filen.
+        return web.json_response({
+            'message': "Manual OAuth is not used with Filen API keys."
+        })
 
     async def manualauth(self, request: Request) -> None:
-        client_id = request.query.get("client_id", "")
-        client_secret = request.query.get("client_secret", "")
-        if client_id == "" or client_secret == "":
-            raise GoogleCredGenerateError("Invalid information provided")
-
-        if self._check_creds_loop is not None and not self._check_creds_loop.done():
-            self._check_creds_loop.cancel()
-            await self._check_creds_loop
-        self._device_code_authorizer = self.custom_auth_provider.get()
-        await self._device_code_authorizer.requestCredentials(client_id, client_secret)
-        self._check_creds_error = None
-        self._check_creds_loop = asyncio.create_task(self.manualCredCheckLoop(self._device_code_authorizer))
         return web.json_response({
-            'auth_url': self._device_code_authorizer.verification_url,
-            'code': self._device_code_authorizer.user_code,
-            'expires': self._time.formatDelta(self._device_code_authorizer.expiration),
+            'message': "Manual OAuth is not used with Filen API keys.",
         })
 
     async def backup(self, request: Request) -> Any:

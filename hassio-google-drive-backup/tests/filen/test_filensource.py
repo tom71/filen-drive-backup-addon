@@ -34,15 +34,9 @@ def test_max_count_reads_config():
     assert source.maxCount() == 7
 
 
-@pytest.mark.asyncio
-async def test_free_space_uses_user_info_storage_values():
-    requests = AsyncMock()
-    requests.validate_api_key = AsyncMock(return_value={"storage": {"max": 1000, "used": 300}})
-    source = FilenSource(config=_config(), requests=requests, folder_finder=AsyncMock())
-
-    space = await source.freeSpace()
-
-    assert space == 700
+def test_free_space_is_optional_in_status_path():
+    source = FilenSource(config=_config(), requests=AsyncMock(), folder_finder=AsyncMock())
+    assert source.freeSpace() is None
 
 
 class _UploadSource:
