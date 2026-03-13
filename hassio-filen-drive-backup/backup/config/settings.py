@@ -261,12 +261,12 @@ _DEFAULTS = {
     Setting.TOKEN_SERVER_HOSTS: "https://token2.habackup.io,https://token1.habackup.io,https://habackup.io",
     Setting.SUPERVISOR_URL: "",
     Setting.SUPERVISOR_TOKEN: "",
-    Setting.DRIVE_URL: "https://www.googleapis.com",
-    Setting.DRIVE_REFRESH_URL: "https://www.googleapis.com/oauth2/v4/token",
+    Setting.DRIVE_URL: "https://gateway.filen.io",
+    Setting.DRIVE_REFRESH_URL: "https://gateway.filen.io/oauth2/v4/token",
     Setting.DRIVE_AUTHORIZE_URL: "https://accounts.filen.io/o/oauth2/v2/auth",
-    Setting.DRIVE_DEVICE_CODE_URL: "https://oauth2.googleapis.com/device/code",
-    Setting.DRIVE_TOKEN_URL: "https://oauth2.googleapis.com/token",
-    Setting.DRIVE_HOST_NAME: "www.googleapis.com",
+    Setting.DRIVE_DEVICE_CODE_URL: "https://gateway.filen.io/v3/device/code",
+    Setting.DRIVE_TOKEN_URL: "https://gateway.filen.io/v3/token",
+    Setting.DRIVE_HOST_NAME: "gateway.filen.io",
     Setting.FILEN_GATEWAY_URL: "https://gateway.filen.io",
     Setting.FILEN_API_KEY: "",
     Setting.SAVE_DRIVE_CREDS_PATH: "token",
@@ -291,7 +291,7 @@ _DEFAULTS = {
     Setting.NEW_BACKUP_TIMEOUT_SECONDS: 5,
     Setting.MAX_SYNC_INTERVAL_SECONDS: 60 * 60 * 3,  # 3 hours
     Setting.DEFAULT_SYNC_INTERVAL_VARIATION: 0.5,  # intermittent checkup syncs happen between 1.5 and 3 hours since the last one, randomly
-    Setting.DEFAULT_DRIVE_CLIENT_ID: "933944288016-n35gnn2juc76ub7u5326ls0iaq9dgjgu.apps.googleusercontent.com",
+    Setting.DEFAULT_DRIVE_CLIENT_ID: "",
     Setting.DEFAULT_DRIVE_CLIENT_SECRET: "",
     Setting.DRIVE_PICKER_API_KEY: "",
     Setting.DEFAULT_CHUNK_SIZE: 1024 * 1024 * 5,
@@ -315,7 +315,7 @@ _DEFAULTS = {
 _STAGING_DEFAULTS = {
     Setting.AUTHORIZATION_HOST: "https://dev.habackup.io",
     Setting.TOKEN_SERVER_HOSTS: "https://token1.dev.habackup.io,https://dev.habackup.io",
-    Setting.DEFAULT_DRIVE_CLIENT_ID: "795575624694-jcdhoh1jr1ngccfsbi2f44arr4jupl79.apps.googleusercontent.com",
+    Setting.DEFAULT_DRIVE_CLIENT_ID: "",
 }
 
 _CONFIG = {

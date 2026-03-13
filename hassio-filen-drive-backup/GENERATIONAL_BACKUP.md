@@ -19,7 +19,7 @@ The generational backup will be used when any one of `generational_days`,  `gene
 * If more than one backup is created for a day (for example if you create one manually) then only the latest backup from that day will be kept.
 
 ## Schedule
-Figuring out date math in your head is hard, so it's useful to see a concrete example.  Consider you have the following configuration. Two backups for each day, week, month, and year along with a limit in Google drive large enough to accommodate them all:
+Figuring out date math in your head is hard, so it's useful to see a concrete example.  Consider you have the following configuration. Two backups for each day, week, month, and year along with a limit in Filen.io large enough to accommodate them all:
 ```json
 "days_between_backups": 1,
 "generational_days": 2,

@@ -205,7 +205,7 @@ class SimulatedSupervisor(BaseServer):
 
     async def _logoAddon(self, request: Request):
         await self._verifyHeader(request)
-        return FileResponse('hassio-google-drive-backup/backup/static/images/logo.png')
+        return FileResponse('hassio-filen-drive-backup/backup/static/images/logo.png')
 
     async def _startAddon(self, request: Request):
         await self._verifyHeader(request)

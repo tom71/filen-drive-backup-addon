@@ -124,7 +124,7 @@ class Coordinator(Trigger):
     def nextSyncCheckOffset(self):
         """Determines how long we shoudl wait from the last check the refresh the cache of backups from Filen and Home Assistant"""
         # If we always sync MAX_SYNC_INTERVAL_SECONDS secodns after the last
-        # check, then the addon in aggregate puts a really high strain on google
+        # check, then the addon in aggregate puts a really high strain on Filen
         # on every hour and the addon's auth servers need to be provisioned for
         # a big peak, which is epxensive.  Instead we add some randomness to the time interval.
         randomness_max = self._config.get(Setting.MAX_SYNC_INTERVAL_SECONDS) * self._config.get(Setting.DEFAULT_SYNC_INTERVAL_VARIATION)

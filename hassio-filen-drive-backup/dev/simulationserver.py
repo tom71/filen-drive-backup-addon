@@ -16,7 +16,7 @@ from tests.faketime import FakeTime
 from backup.module import BaseModule
 from backup.config import Config, Setting
 from .http_exception import HttpMultiException
-from .simulated_google import SimulatedFilen
+from .simulated_filen import SimulatedFilen
 from .base_server import BaseServer
 from .ports import Ports
 from .request_interceptor import RequestInterceptor
@@ -37,9 +37,9 @@ rangePattern = re.compile("bytes=\\d+-\\d+")
 @singleton
 class SimulationServer(BaseServer):
     @inject
-    def __init__(self, ports: Ports, time: Time, session: ClientSession, authserver: Server, config: Config, google: SimulatedFilen, supervisor: SimulatedSupervisor, api_ingress: APIIngress, interceptor: RequestInterceptor):
+    def __init__(self, ports: Ports, time: Time, session: ClientSession, authserver: Server, config: Config, filen: SimulatedFilen, supervisor: SimulatedSupervisor, api_ingress: APIIngress, interceptor: RequestInterceptor):
         self.interceptor = interceptor
-        self.google = google
+        self.filen = filen
         self.supervisor = supervisor
         self.config = config
         self.id_counter = 0
@@ -116,7 +116,7 @@ class SimulationServer(BaseServer):
             post('/uploadfile', self.uploadfile),
             get('/ingress/self_slug', self.slugRedirect),
             get('/debug/config', self.debug_config)
-        ] + self.google.routes() + self.supervisor.routes() + self._api_ingress.routes()
+        ] + self.filen.routes() + self.supervisor.routes() + self._api_ingress.routes()
 
     async def debug_config(self, request: Request):
         return json_response(self.supervisor._options)

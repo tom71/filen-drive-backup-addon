@@ -169,10 +169,10 @@ class HaUpdater(Worker):
                 "attributes": {
                     "friendly_name": "Snapshot State",
                     "last_snapshot": last,  # type: ignore
-                    "snapshots_in_google_drive": len(remote_backups),
+                    "snapshots_in_filen": len(remote_backups),
                     "snapshots_in_hassio": len(ha_backups),
                     "snapshots_in_home_assistant": len(ha_backups),
-                    "size_in_google_drive": Estimator.asSizeString(sum(map(lambda v: v.sizeInt(), remote_backups))),
+                    "size_in_filen": Estimator.asSizeString(sum(map(lambda v: v.sizeInt(), remote_backups))),
                     "size_in_home_assistant": Estimator.asSizeString(sum(map(lambda v: v.sizeInt(), ha_backups))),
                     "snapshots": list(map(makeBackupData, backups))
                 }
@@ -187,16 +187,16 @@ class HaUpdater(Worker):
                 "last_backup": last,  # type: ignore
                 "next_backup": next,
                 "last_uploaded": last_uploaded,
-                "backups_in_google_drive": len(remote_backups),
+                "backups_in_filen": len(remote_backups),
                 "backups_in_home_assistant": len(ha_backups),
-                "size_in_google_drive": Estimator.asSizeString(sum(map(lambda v: v.sizeInt(), remote_backups))),
+                "size_in_filen": Estimator.asSizeString(sum(map(lambda v: v.sizeInt(), remote_backups))),
                 "size_in_home_assistant": Estimator.asSizeString(sum(map(lambda v: v.sizeInt(), ha_backups))),
                 "backups": list(map(makeBackupData, backups))
             }
             if remote_source in source_metrics and 'free_space' in source_metrics[remote_source]:
-                attr["free_space_in_google_drive"] = source_metrics[remote_source]['free_space']
+                attr["free_space_in_filen"] = source_metrics[remote_source]['free_space']
             else:
-                attr["free_space_in_google_drive"] = ""
+                attr["free_space_in_filen"] = ""
             return {
                 "state": self._state(),
                 "attributes": attr

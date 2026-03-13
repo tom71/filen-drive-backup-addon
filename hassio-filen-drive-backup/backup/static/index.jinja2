@@ -46,7 +46,7 @@
                         Clicking this link authenticates you with an external domain maintained by the developer of this add-on (<a
                           href="https://habackup.io">habackup.io</a>). 
                     </li>
-                    <li>You can <a href="https://github.com/tom71/hassio-google-drive-backup/blob/master/hassio-google-drive-backup/AUTHENTICATION.md" target="_blank" rel="noreferrer">read this</a> to understand what this means and why it's necessary.
+                    <li>You can <a href="https://github.com/tom71/hassio-filen-drive-backup/blob/master/hassio-filen-drive-backup/AUTHENTICATION.md" target="_blank" rel="noreferrer">read this</a> to understand what this means and why it's necessary.
                     </li>
                     <li>
                       By doing this you must agree to the <a href="pp">Privacy Policy</a> and <a href="tos">Terms of Service</a></h6>
@@ -62,7 +62,7 @@
                   
                   After you get the authorization code from the link above, paste the result here:
                   <br/>
-                  <textarea id="google_credentials_box" style="height: 5rem;"></textarea>
+                  <textarea id="filen_credentials_box" style="height: 5rem;"></textarea>
                   <br>
                   <div class="left" style="display: none;" id="save_cred_message">
                     <div class="cls-spinner left" id="save_cred_working">
@@ -72,7 +72,7 @@
                   </div>
                   
                   <a target="_blank" class="right btn-large btn-flat btn-high-vis disabled"
-                        id="send_creds_button" onclick="send_creds($('#google_credentials_box').val())">Save</a>
+                        id="send_creds_button" onclick="send_creds($('#filen_credentials_box').val())">Save</a>
                 </div>
               </div>
               <div class="row center">
@@ -83,7 +83,7 @@
           <div id="option2" class="col s12 m6 offset-m3 default-hidden">
             <div id="option2-step1">
               Follow the <a target="_blank" rel="noreferrer"
-                href="https://github.com/tom71/hassio-google-drive-backup/blob/master/LOCAL_AUTH.md">instructions
+                href="https://github.com/tom71/hassio-filen-drive-backup/blob/master/LOCAL_AUTH.md">instructions
                 here</a> to get your own client ID and client secret from Filen.io's Cloud Console. This is a much more complicated and time
               consuming approach but doesn't require you to authenticate yourself with an external domain. 
               <div class="row">
@@ -202,7 +202,7 @@
     }
 
     function updateCredsButton() {
-      var text = $('#google_credentials_box').val()
+      var text = $('#filen_credentials_box').val()
       if (text.length > 0){
         $("#send_creds_button").removeClass('disabled');
       } else {
@@ -314,8 +314,8 @@
       $("#client_id").keyup(updateHref);
       $("#client_secret").mouseup(updateHref);
       $("#client_id").mouseup(updateHref);
-      $("#google_credentials_box").change(updateCredsButton)
-      $("#google_credentials_box").keyup(updateCredsButton);
+      $("#filen_credentials_box").change(updateCredsButton)
+      $("#filen_credentials_box").keyup(updateCredsButton);
 
       window.setInterval(reloadForNewCreds, 5000);
       reloadForNewCreds();

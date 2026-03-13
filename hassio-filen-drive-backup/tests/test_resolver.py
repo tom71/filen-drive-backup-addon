@@ -36,11 +36,11 @@ async def test_hard_resolve(resolver: Resolver, config: Config):
         'port': 1234,
         'proto': 0,
         'host': "1.2.3.4",
-        'hostname': "www.googleapis.com"
+        'hostname': "gateway.filen.io"
     }]
     config.override(Setting.DRIVE_IPV4, "1.2.3.4")
-    assert await resolver.resolve("www.googleapis.com", 1234, 0) == expected
+    assert await resolver.resolve("gateway.filen.io", 1234, 0) == expected
     resolver.toggle()
-    assert await resolver.resolve("www.googleapis.com", 1234, 0) == expected
+    assert await resolver.resolve("gateway.filen.io", 1234, 0) == expected
     resolver.toggle()
-    assert await resolver.resolve("www.googleapis.com", 1234, 0) == expected
+    assert await resolver.resolve("gateway.filen.io", 1234, 0) == expected

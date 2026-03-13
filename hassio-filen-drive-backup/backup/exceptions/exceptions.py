@@ -197,7 +197,7 @@ class DriveQuotaExceeded(KnownError):
 
 class FilenDnsFailure(KnownError):
     def message(self):
-        return "Unable to resolve host www.googleapis.com"
+        return "Unable to resolve host gateway.filen.io"
 
     def code(self):
         return ERROR_FILEN_DNS
@@ -205,7 +205,7 @@ class FilenDnsFailure(KnownError):
 
 class FilenCantConnect(KnownError):
     def message(self):
-        return "Unable to connect to www.googleapis.com"
+        return "Unable to connect to gateway.filen.io"
 
     def code(self):
         return ERROR_FILEN_CONNECT
@@ -349,18 +349,18 @@ class UserCancelledError(KnownError):
 
 
 class CredRefreshFilenError(KnownError):
-    def __init__(self, from_google=None):
-        self.from_google = from_google
+    def __init__(self, from_filen=None):
+        self.from_filen = from_filen
 
     def message(self):
-        return "Couldn't refresh your credentials with Filen because: '{}'".format(self.from_google)
+        return "Couldn't refresh your credentials with Filen because: '{}'".format(self.from_filen)
 
     def code(self):
-        return "token_refresh_google_error"
+        return "token_refresh_filen_error"
 
     def data(self):
         return {
-            "from_google": self.from_google
+            "from_filen": self.from_filen
         }
 
 

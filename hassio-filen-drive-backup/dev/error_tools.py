@@ -1,13 +1,23 @@
 import argparse
-from google.cloud import firestore
 from datetime import datetime, timedelta
+import firebase_admin
+from firebase_admin import firestore
+
 DELETE_BATCH_SIZE = 200
 STORE_NAME = "error_reports"
 
 
+def _get_firestore_client():
+    try:
+        app = firebase_admin.get_app()
+    except ValueError:
+        app = firebase_admin.initialize_app()
+    return firestore.client(app=app)
+
+
 def delete_old_data():
     # Initialize Firestore
-    db = firestore.Client()
+    db = _get_firestore_client()
     collection_ref = db.collection(STORE_NAME)
 
     # Define the datetime for one week ago

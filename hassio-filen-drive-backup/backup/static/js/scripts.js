@@ -819,7 +819,7 @@ function populateDnsInfo(target, data) {
 function populateGitHubInfo(target, error) {
   $('#generic_error_title', target).text(error.message);
   $('#generic_error_details', target).text(error.details);
-  $('#error_github_search', target).attr("href", "https://github.com/tom71/hassio-google-drive-backup/issues?q=" + encodeURIComponent("\"" + error.message.replace("\"", "\\\"") + "\""));
+  $('#error_github_search', target).attr("href", "https://github.com/tom71/hassio-filen-drive-backup/issues?q=" + encodeURIComponent("\"" + error.message.replace("\"", "\\\"") + "\""));
 }
 
 function simulateError() {

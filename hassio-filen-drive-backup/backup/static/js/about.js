@@ -1,7 +1,7 @@
 let contributorsLoaded = false;
 
-const CONTRIBUTORS_API_URL = "https://api.github.com/repos/tom71/hassio-google-drive-backup/contributors";
-const CONTRIBUTOR_COMMIT_URL = "https://github.com/tom71/hassio-google-drive-backup/commits?author={AUTHOR}";
+const CONTRIBUTORS_API_URL = "https://api.github.com/repos/tom71/hassio-filen-drive-backup/contributors";
+const CONTRIBUTOR_COMMIT_URL = "https://github.com/tom71/hassio-filen-drive-backup/commits?author={AUTHOR}";
 const CONTRIBUTORS_COUNT_TO_SHOW = 14;
 
 const EXTRA_CONTRIBUTORS = {

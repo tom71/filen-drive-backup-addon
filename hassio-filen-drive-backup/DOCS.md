@@ -1,4 +1,4 @@
-# Home Assistant Add-on: Google Assistant SDK
+# Home Assistant Add-on: Filen.io Backup
 
 ## Installation
 

@@ -109,7 +109,7 @@ class SimulatedFilen(BaseServer):
             get('/drive/v3/about', self._driveAbout),
             post('/device/code', self._deviceCode),
             get('/device', self._device),
-            get('/debug/google', self._debug),
+            get('/debug/filen', self._debug),
             post('/token', self._driveToken),
         ]
 
@@ -128,7 +128,7 @@ class SimulatedFilen(BaseServer):
         params = await request.post()
         client_id = params['client_id']
         scope = params['scope']
-        if client_id != self._custom_drive_client_id or scope != 'https://www.googleapis.com/auth/drive.file':
+        if client_id != self._custom_drive_client_id or scope != 'https://gateway.filen.io/auth/drive.file':
             raise HTTPUnauthorized()
 
         self.device_auth_params = {
@@ -178,7 +178,7 @@ class SimulatedFilen(BaseServer):
         query = request.query
         if query.get('client_id') != self.config.get(Setting.DEFAULT_DRIVE_CLIENT_ID) and query.get('client_id') != self._custom_drive_client_id:
             raise HTTPUnauthorized()
-        if query.get('scope') != 'https://www.googleapis.com/auth/drive.file':
+        if query.get('scope') != 'https://gateway.filen.io/auth/drive.file':
             raise HTTPUnauthorized()
         if query.get('response_type') != 'code':
             raise HTTPUnauthorized()
