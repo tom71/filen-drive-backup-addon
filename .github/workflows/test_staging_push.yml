@@ -53,7 +53,7 @@ jobs:
         args: |
           --amd64 \
           --aarch64 \
-          --target dev/hassio-google-drive-backup \
+          --target dev/hassio-filen-drive-backup \
           --docker-hub "ghcr.io/tom71"
 
     - name: Wait before retry
@@ -70,7 +70,7 @@ jobs:
         args: |
           --amd64 \
           --aarch64 \
-          --target dev/hassio-google-drive-backup \
+          --target dev/hassio-filen-drive-backup \
           --docker-hub "ghcr.io/tom71"
 
     - name: Wait before final retry
@@ -86,7 +86,7 @@ jobs:
         args: |
           --amd64 \
           --aarch64 \
-          --target dev/hassio-google-drive-backup \
+          --target dev/hassio-filen-drive-backup \
           --docker-hub "ghcr.io/tom71"
 
     - name: Make GHCR images public
