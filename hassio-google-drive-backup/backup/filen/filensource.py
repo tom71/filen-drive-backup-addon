@@ -34,13 +34,23 @@ class FilenSource(BackupDestination):
         return self.config.get(Setting.ENABLE_FILEN_UPLOAD)
 
     def maxCount(self) -> int:
-        return self.config.get(Setting.MAX_BACKUPS_IN_FILEN)
+        if self.config.get(Setting.MAX_BACKUPS_IN_FILEN) != Setting.MAX_BACKUPS_IN_FILEN.default():
+            return self.config.get(Setting.MAX_BACKUPS_IN_FILEN)
+        return self.config.get(Setting.MAX_BACKUPS_IN_GOOGLE_DRIVE)
 
     def _api_key(self) -> str:
         return self.config.get(Setting.FILEN_API_KEY)
 
     def enabled(self) -> bool:
         return self.upload() and bool(self._api_key())
+
+    def isCustomCreds(self) -> bool:
+        # Filen uses API keys, there is no managed/default credential pair.
+        return True
+
+    def saveCreds(self, _creds):
+        # OAuth credentials do not apply to Filen.
+        return
 
     async def get(self) -> Dict[str, FilenBackup]:
         if not self.enabled():

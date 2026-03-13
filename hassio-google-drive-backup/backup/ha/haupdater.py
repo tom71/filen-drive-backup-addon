@@ -9,7 +9,7 @@ from ..util import GlobalInfo, Backoff, Estimator
 from .harequests import HaRequests
 from ..time import Time
 from ..worker import Worker
-from ..const import SOURCE_HA, SOURCE_GOOGLE_DRIVE
+from ..const import SOURCE_HA, SOURCE_GOOGLE_DRIVE, SOURCE_FILEN
 from ..logger import getLogger
 
 logger = getLogger(__name__)
@@ -131,34 +131,48 @@ class HaUpdater(Worker):
 
     def _buildBackupUpdate(self):
         backups = list(filter(lambda s: not s.ignore(), self._coordinator.backups()))
+        remote_source = SOURCE_FILEN if any(map(lambda s: s.getSource(SOURCE_FILEN) is not None, backups)) else SOURCE_GOOGLE_DRIVE
+
+        def backup_date(backup: Backup):
+            if self._config.get(Setting.IGNORE_OTHER_BACKUPS):
+                return backup.date()
+            dates = list(map(lambda s: s.date(), backup.sources.values()))
+            if len(dates) > 0:
+                value = min(dates)
+            else:
+                value = backup.date()
+            return value.replace(minute=0, second=0, microsecond=0)
+
         last = "Never"
         if len(backups) > 0:
-            last = max(backups, key=lambda s: s.date()).date().isoformat()
+            last = max(backups, key=backup_date)
+            last = backup_date(last).isoformat()
 
         def makeBackupData(backup: Backup):
             return {
                 "name": backup.name(),
-                "date": str(backup.date().isoformat()),
+                "date": str(backup_date(backup).isoformat()),
                 "state": backup.status(),
                 "size": backup.sizeString(),
                 "slug": backup.slug()
             }
         ha_backups = list(filter(lambda s: s.getSource(SOURCE_HA) is not None, backups))
-        drive_backups = list(filter(lambda s: s.getSource(SOURCE_GOOGLE_DRIVE) is not None, backups))
+        remote_backups = list(filter(lambda s: s.getSource(remote_source) is not None, backups))
 
         last_uploaded = "Never"
-        if len(drive_backups) > 0:
-            last_uploaded = max(drive_backups, key=lambda s: s.date()).date().isoformat()
+        if len(remote_backups) > 0:
+            last_uploaded = max(remote_backups, key=backup_date)
+            last_uploaded = backup_date(last_uploaded).isoformat()
         if self._config.get(Setting.CALL_BACKUP_SNAPSHOT):
             return {
                 "state": self._state(),
                 "attributes": {
                     "friendly_name": "Snapshot State",
                     "last_snapshot": last,  # type: ignore
-                    "snapshots_in_google_drive": len(drive_backups),
+                    "snapshots_in_google_drive": len(remote_backups),
                     "snapshots_in_hassio": len(ha_backups),
                     "snapshots_in_home_assistant": len(ha_backups),
-                    "size_in_google_drive": Estimator.asSizeString(sum(map(lambda v: v.sizeInt(), drive_backups))),
+                    "size_in_google_drive": Estimator.asSizeString(sum(map(lambda v: v.sizeInt(), remote_backups))),
                     "size_in_home_assistant": Estimator.asSizeString(sum(map(lambda v: v.sizeInt(), ha_backups))),
                     "snapshots": list(map(makeBackupData, backups))
                 }
@@ -173,14 +187,14 @@ class HaUpdater(Worker):
                 "last_backup": last,  # type: ignore
                 "next_backup": next,
                 "last_uploaded": last_uploaded,
-                "backups_in_google_drive": len(drive_backups),
+                "backups_in_google_drive": len(remote_backups),
                 "backups_in_home_assistant": len(ha_backups),
-                "size_in_google_drive": Estimator.asSizeString(sum(map(lambda v: v.sizeInt(), drive_backups))),
+                "size_in_google_drive": Estimator.asSizeString(sum(map(lambda v: v.sizeInt(), remote_backups))),
                 "size_in_home_assistant": Estimator.asSizeString(sum(map(lambda v: v.sizeInt(), ha_backups))),
                 "backups": list(map(makeBackupData, backups))
             }
-            if SOURCE_GOOGLE_DRIVE in source_metrics and 'free_space' in source_metrics[SOURCE_GOOGLE_DRIVE]:
-                attr["free_space_in_google_drive"] = source_metrics[SOURCE_GOOGLE_DRIVE]['free_space']
+            if remote_source in source_metrics and 'free_space' in source_metrics[remote_source]:
+                attr["free_space_in_google_drive"] = source_metrics[remote_source]['free_space']
             else:
                 attr["free_space_in_google_drive"] = ""
             return {

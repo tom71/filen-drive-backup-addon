@@ -8,6 +8,7 @@ from typing import List
 
 from backup.config import Config, Startable, Setting
 from backup.drive import DriveSource
+from backup.filen import FilenSource
 from backup.ha import HaSource, HaUpdater, AddonStopper
 from backup.model import BackupDestination, BackupSource, Scyncer
 from backup.util import Resolver
@@ -31,12 +32,14 @@ class BaseModule(Module):
 
     @multiprovider
     @singleton
-    def getTriggers(self, coord: Coordinator, ha: HaSource, drive: DriveSource, watcher: Watcher, server: UiServer) -> List[Trigger]:
-        return [coord, ha, drive, watcher, server]
+    def getTriggers(self, coord: Coordinator, ha: HaSource, drive: DriveSource, filen: FilenSource, watcher: Watcher, server: UiServer) -> List[Trigger]:
+        return [coord, ha, drive, filen, watcher, server]
 
     @provider
     @singleton
-    def getDrive(self, drive: DriveSource) -> BackupDestination:
+    def getDrive(self, drive: DriveSource, filen: FilenSource, config: Config) -> BackupDestination:
+        if config.get(Setting.ENABLE_FILEN_UPLOAD):
+            return filen
         return drive
 
     @provider

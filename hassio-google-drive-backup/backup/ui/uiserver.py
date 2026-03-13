@@ -13,7 +13,7 @@ from aiohttp.web import HTTPException, Request, HTTPSeeOther, HTTPNotFound
 from injector import ClassAssistedBuilder, ProviderOf, inject, singleton
 
 from backup.config import Config, Setting, CreateOptions, BoolValidator, Startable, Version, VERSION
-from backup.const import SOURCE_GOOGLE_DRIVE, SOURCE_HA, GITHUB_BUG_TEMPLATE
+from backup.const import SOURCE_GOOGLE_DRIVE, SOURCE_FILEN, SOURCE_HA, GITHUB_BUG_TEMPLATE
 from backup.model import Coordinator, Backup, AbstractBackup
 from backup.exceptions import KnownError, GoogleCredGenerateError, ensureKey
 from backup.util import GlobalInfo, Estimator, DataCache, UpgradeFlags
@@ -158,9 +158,12 @@ class UiServer(Trigger, Startable):
         }))
         status['choose_folder_url'] = str(choose_url)
         status['dns_info'] = self._global_info.getDnsInfo()
+        status['enable_filen_upload'] = self.config.get(
+            Setting.ENABLE_FILEN_UPLOAD)
         status['enable_drive_upload'] = self.config.get(
             Setting.ENABLE_DRIVE_UPLOAD)
-        status['is_custom_creds'] = self._coord._model.dest.isCustomCreds()
+        is_custom_creds = getattr(self._coord._model.dest, "isCustomCreds", None)
+        status['is_custom_creds'] = is_custom_creds() if callable(is_custom_creds) else False
         status['is_specify_folder'] = self.config.get(
             Setting.SPECIFY_BACKUP_FOLDER)
         status['backup_cooldown_active'] = self._coord.isWaitingForStartup()
@@ -292,6 +295,7 @@ class UiServer(Trigger, Startable):
             request.query.get("retain_ha", False))
         note = request.query.get("note", None)
         options = CreateOptions(self._time.now(), custom_name, {
+            SOURCE_FILEN: retain_drive,
             SOURCE_GOOGLE_DRIVE: retain_drive,
             SOURCE_HA: retain_ha
         }, note=note)
@@ -470,7 +474,7 @@ class UiServer(Trigger, Startable):
             'mounts': mounts,
             'defaults': default_config,
             'backup_folder': self.folder_finder.getCachedFolder(),
-            'is_custom_creds': self._coord._model.dest.isCustomCreds(),
+            'is_custom_creds': getattr(self._coord._model.dest, "isCustomCreds", lambda: False)(),
         })
 
     async def errorreports(self, request: Request):
