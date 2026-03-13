@@ -17,5 +17,9 @@
     "editor.tabSize": 2,
   },
   "python.analysis.completeFunctionParens": true,
-  "python.analysis.typeCheckingMode": "basic"
+  "python.analysis.typeCheckingMode": "basic",
+  "python-envs.defaultEnvManager": "ms-python.python:system",
+  "chat.tools.terminal.autoApprove": {
+    "pytest": true
+  }
 }
