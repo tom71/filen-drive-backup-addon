@@ -31,7 +31,38 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Publish Staging Addon image
+    - name: Publish Staging Addon image (attempt 1)
+      id: publish_attempt_1
+      continue-on-error: true
+      uses: home-assistant/builder@master
+      with:
+        args: |
+          --all \
+          --target dev/hassio-google-drive-backup/hassio-google-drive-backup \
+          --docker-hub "ghcr.io/tom71"
+
+    - name: Wait before retry
+      if: steps.publish_attempt_1.outcome == 'failure'
+      run: sleep 15
+
+    - name: Publish Staging Addon image (attempt 2)
+      id: publish_attempt_2
+      if: steps.publish_attempt_1.outcome == 'failure'
+      continue-on-error: true
+      uses: home-assistant/builder@master
+      with:
+        args: |
+          --all \
+          --target dev/hassio-google-drive-backup/hassio-google-drive-backup \
+          --docker-hub "ghcr.io/tom71"
+
+    - name: Wait before final retry
+      if: steps.publish_attempt_1.outcome == 'failure' && steps.publish_attempt_2.outcome == 'failure'
+      run: sleep 30
+
+    - name: Publish Staging Addon image (attempt 3)
+      id: publish_attempt_3
+      if: steps.publish_attempt_1.outcome == 'failure' && steps.publish_attempt_2.outcome == 'failure'
       uses: home-assistant/builder@master
       with:
         args: |
