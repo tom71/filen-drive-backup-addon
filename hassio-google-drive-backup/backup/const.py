@@ -1,5 +1,6 @@
 
 SOURCE_GOOGLE_DRIVE = "GoogleDrive"
+SOURCE_FILEN = "Filen"
 SOURCE_HA = "HomeAssistant"
 
 ERROR_PLEASE_WAIT = "please_wait"

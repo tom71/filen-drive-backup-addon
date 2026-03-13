@@ -5,6 +5,7 @@ from .model import BackupSource, BackupDestination, Model
 from .syncer import Scyncer
 from .backups import AbstractBackup, Backup
 from .drivebackup import DriveBackup
+from .filenbackup import FilenBackup
 from .dummybackup import DummyBackup
 from .dummybackupsource import DummyBackupSource
 from .habackup import HABackup

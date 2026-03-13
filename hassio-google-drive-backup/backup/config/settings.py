@@ -19,6 +19,7 @@ logger = getLogger(__name__)
 class Setting(Enum):
     MAX_BACKUPS_IN_HA = "max_backups_in_ha"
     MAX_BACKUPS_IN_GOOGLE_DRIVE = "max_backups_in_google_drive"
+    MAX_BACKUPS_IN_FILEN = "max_backups_in_filen"
     DAYS_BETWEEN_BACKUPS = "days_between_backups"
     IGNORE_OTHER_BACKUPS = "ignore_other_backups"
     IGNORE_UPGRADE_BACKUPS = "ignore_upgrade_backups"
@@ -71,6 +72,7 @@ class Setting(Enum):
     SEND_ERROR_REPORTS = "send_error_reports"
     CONFIRM_MULTIPLE_DELETES = "confirm_multiple_deletes"
     ENABLE_DRIVE_UPLOAD = "enable_drive_upload"
+    ENABLE_FILEN_UPLOAD = "enable_filen_upload"
     WATCH_BACKUP_DIRECTORY = "watch_backup_directory"
     TRACE_REQUESTS = "trace_requests"
 
@@ -92,6 +94,7 @@ class Setting(Enum):
 
     # Files and folders
     FOLDER_FILE_PATH = "folder_file_path"
+    FILEN_FOLDER_FILE_PATH = "filen_folder_file_path"
     CREDENTIALS_FILE_PATH = "credentials_file_path"
     RETAINED_FILE_PATH = "retained_file_path"
     SECRETS_FILE_PATH = "secrets_file_path"
@@ -112,6 +115,8 @@ class Setting(Enum):
     DRIVE_AUTHORIZE_URL = "drive_authorize_url"
     DRIVE_DEVICE_CODE_URL = "drive_device_code_url"
     DRIVE_TOKEN_URL = "drive_token_url"
+    FILEN_GATEWAY_URL = "filen_gateway_url"
+    FILEN_API_KEY = "filen_api_key"
     SAVE_DRIVE_CREDS_PATH = "save_drive_creds_path"
     STOP_ADDON_STATE_PATH = "stop_addon_state_path"
 
@@ -169,6 +174,7 @@ class Setting(Enum):
 _DEFAULTS = {
     Setting.MAX_BACKUPS_IN_HA: 4,
     Setting.MAX_BACKUPS_IN_GOOGLE_DRIVE: 4,
+    Setting.MAX_BACKUPS_IN_FILEN: 4,
     Setting.DAYS_BETWEEN_BACKUPS: 3,
     Setting.IGNORE_OTHER_BACKUPS: False,
     Setting.IGNORE_UPGRADE_BACKUPS: True,
@@ -237,6 +243,7 @@ _DEFAULTS = {
     Setting.VERBOSE: False,
     Setting.CONFIRM_MULTIPLE_DELETES: True,
     Setting.ENABLE_DRIVE_UPLOAD: True,
+    Setting.ENABLE_FILEN_UPLOAD: False,
 
     # Theme Settings
     Setting.BACKGROUND_COLOR: "",
@@ -262,10 +269,13 @@ _DEFAULTS = {
     Setting.DRIVE_DEVICE_CODE_URL: "https://oauth2.googleapis.com/device/code",
     Setting.DRIVE_TOKEN_URL: "https://oauth2.googleapis.com/token",
     Setting.DRIVE_HOST_NAME: "www.googleapis.com",
+    Setting.FILEN_GATEWAY_URL: "https://gateway.filen.io",
+    Setting.FILEN_API_KEY: "",
     Setting.SAVE_DRIVE_CREDS_PATH: "token",
 
     # File locations used to store things
     Setting.FOLDER_FILE_PATH: "/data/folder.dat",
+    Setting.FILEN_FOLDER_FILE_PATH: "/data/filen_folder.dat",
     Setting.CREDENTIALS_FILE_PATH: "/data/credentials.dat",
     Setting.BACKUP_DIRECTORY_PATH: "/backup",
     Setting.RETAINED_FILE_PATH: "/data/retained.json",
@@ -313,6 +323,7 @@ _STAGING_DEFAULTS = {
 _CONFIG = {
     Setting.MAX_BACKUPS_IN_HA: "int(0,)?",
     Setting.MAX_BACKUPS_IN_GOOGLE_DRIVE: "int(0,)?",
+    Setting.MAX_BACKUPS_IN_FILEN: "int(0,)?",
     Setting.DAYS_BETWEEN_BACKUPS: "float(0,)?",
     Setting.IGNORE_OTHER_BACKUPS: "bool?",
     Setting.IGNORE_UPGRADE_BACKUPS: "bool?",
@@ -380,6 +391,7 @@ _CONFIG = {
     Setting.VERBOSE: "bool?",
     Setting.CONFIRM_MULTIPLE_DELETES: "bool?",
     Setting.ENABLE_DRIVE_UPLOAD: "bool?",
+    Setting.ENABLE_FILEN_UPLOAD: "bool?",
 
     # Theme Settings
     Setting.BACKGROUND_COLOR: "match(^(#[0-9ABCDEFabcdef]{6}|)$)?",
@@ -405,10 +417,13 @@ _CONFIG = {
     Setting.DRIVE_DEVICE_CODE_URL: "url?",
     Setting.DRIVE_TOKEN_URL: "url?",
     Setting.DRIVE_HOST_NAME: "str?",
+    Setting.FILEN_GATEWAY_URL: "url?",
+    Setting.FILEN_API_KEY: "str?",
     Setting.SAVE_DRIVE_CREDS_PATH: "str?",
 
     # File locations used to store things
     Setting.FOLDER_FILE_PATH: "str?",
+    Setting.FILEN_FOLDER_FILE_PATH: "str?",
     Setting.CREDENTIALS_FILE_PATH: "str?",
     Setting.BACKUP_DIRECTORY_PATH: "str?",
     Setting.RETAINED_FILE_PATH: "str?",
@@ -451,7 +466,8 @@ PRIVATE = [
     Setting.DEPRECATED_BACKUP_PASSWORD,
     Setting.DEPRECTAED_BACKUP_NAME,
     Setting.BACKUP_PASSWORD,
-    Setting.BACKUP_NAME
+    Setting.BACKUP_NAME,
+    Setting.FILEN_API_KEY
 ]
 
 _LOOKUP = {}

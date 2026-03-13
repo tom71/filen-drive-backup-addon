@@ -4,7 +4,7 @@ from typing import Dict, Optional, Union
 from dateutil.tz import tzutc
 from ..util import Estimator
 
-from ..const import SOURCE_GOOGLE_DRIVE, SOURCE_HA
+from ..const import SOURCE_GOOGLE_DRIVE, SOURCE_FILEN, SOURCE_HA
 from ..logger import getLogger
 from ..config import CreateOptions
 
@@ -267,11 +267,13 @@ class Backup(object):
                 return status
 
         inDrive = self.getSource(SOURCE_GOOGLE_DRIVE) is not None
+        inFilen = self.getSource(SOURCE_FILEN) is not None
         inHa = self.getSource(SOURCE_HA) is not None
+        inRemote = inDrive or inFilen
 
-        if inDrive and inHa:
+        if inRemote and inHa:
             return "Backed Up"
-        if inDrive:
+        if inRemote:
             return "Drive Only"
         if inHa:
             return "HA Only"
