@@ -58,9 +58,11 @@ This addon has been featured by %YOUR_FAVORITE_HA_YOUTUBER% and is often listed 
 
 6. The "Getting Started" page will tell you how many backups you have and what it will do with them once you connect it to Filen.io. You can click `Settings` to change those options through the add-on (which is the recommended way, they take effect immediately), or update them from the page where you installed the add-on as described below (also works, restart for them to take effect).
 
-7. Open the add-on settings and set your Filen.io API key in `filen_api_key`.
+7. Create a Filen API key (see [How do I get a Filen API key?](#how-do-i-get-a-filen-api-key)).
 
-8. You should be redirected automatically to the backup status page. Here you can make a new backups, see the progress of uploading to Filen.io, etc. You're done!
+8. Open the add-on settings and set your Filen API key in `filen_api_key`.
+
+9. You should be redirected automatically to the backup status page. Here you can make backups, see upload progress to Filen.io, etc. You're done.
 
 ## Configuration
 
@@ -236,6 +238,17 @@ This invariably means that I have a very limited ability to see how many people 
 ### Can I use my own Filen credentials?
 
 Yes. This add-on is designed to use your own Filen API key directly. Open add-on settings and set `filen_api_key`.
+
+### How do I get a Filen API key?
+
+1. Sign in to your Filen account in the web app.
+2. Open your account settings and find the API Keys section.
+3. Create a new API key for Home Assistant backups.
+4. Copy the key immediately (some UIs only show it once).
+5. In Home Assistant, open add-on Configuration and set `filen_api_key` to that value.
+6. Save and restart the add-on.
+
+If the menu labels in Filen change, search settings for `API key` or `Developer`.
 
 ### Can I permanently save a backup so it doesn't get cleaned up?
 

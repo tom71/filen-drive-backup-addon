@@ -14,6 +14,9 @@ If you would still prefer to modify the settings in yaml, the options are detail
 Don't use this directly, the addon has a lot of configuration options that most users don't need or want:
 
 ```yaml
+# Filen API key used for upload and restore
+filen_api_key: "paste_your_filen_api_key_here"
+
 # Keep 10 backups in Home Assistant
 max_backups_in_ha: 10
 
@@ -75,6 +78,10 @@ send_error_reports: true
 # Delete backups after they're uploaded to Filen.io
 delete_after_upload: true
 ```
+
+### Option: `filen_api_key`
+
+API key used to authenticate this add-on with Filen. Create it in your Filen account settings under API Keys (or Developer), then paste it into add-on configuration.
 
 ### Option: `max_backups_in_ha` (default: 4)
 
