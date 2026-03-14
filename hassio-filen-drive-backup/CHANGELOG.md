@@ -1,3 +1,11 @@
+## v0.0.2 [2026-03-14]
+
+- Rebranded maintainer/contact details across UI and repository metadata.
+- Updated onboarding/auth copy for Filen API key flow and removed legacy third-party auth references.
+- Added acknowledgement for the original project `sabeechen/hassio-google-drive-backup`.
+- Added automatic creation/resolution of the default Filen folder `Home Assistant Backups` when an API key is saved.
+- Updated local development Docker networking and startup helper script.
+
 ## v0.112.1 [2023-11-03]
 
 - Added warnings about using the "Stop Addons" feature.  I plan on removing this in the near future.  If you'd like to keep the feature around, please give your feedback in [this GitHub issue](https://github.com/tom71/hassio-filen-drive-backup/issues/940).

@@ -1,6 +1,6 @@
 {
   "name": "Home Assistant Filen.io Backup",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "slug": "hassio_filen_drive_backup",
   "description": "Automatically manage backups between Home Assistant and Filen.io",
   "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
