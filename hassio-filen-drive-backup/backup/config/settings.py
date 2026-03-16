@@ -231,7 +231,7 @@ _DEFAULTS = {
     Setting.CERTFILE: "/ssl/fullchain.pem",
     Setting.KEYFILE: "/ssl/privkey.pem",
     Setting.INGRESS_PORT: 8099,
-    Setting.PORT: 1627,
+    Setting.PORT: 1628,
 
     # Add-on options
     Setting.DEPRECTAED_NOTIFY_FOR_STALE_BACKUPS: True,

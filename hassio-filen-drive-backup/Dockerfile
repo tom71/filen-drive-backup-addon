@@ -7,6 +7,6 @@ RUN ./addon_deps.sh
 RUN pip3 install --break-system-packages .
 COPY config.json /usr/local/lib/python3.11/site-packages/config.json
 
-EXPOSE 1627
+EXPOSE 1628
 EXPOSE 8099
 ENTRYPOINT ["python3", "-m", "backup"]

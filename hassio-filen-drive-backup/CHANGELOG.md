@@ -1,3 +1,10 @@
+## v0.0.3 [2026-03-16]
+
+- Switched the default exposed web UI port from 1627 to 1628 across config, defaults, and UI hints.
+- Removed Codecov upload from CI and publish coverage artifacts directly in GitHub Actions.
+- Added local coverage enforcement in CI with `--cov-fail-under=70`.
+- Fixed upgrade-warning behavior for fresh installs on forked version numbering.
+
 ## v0.0.2 [2026-03-14]
 
 - Rebranded maintainer/contact details across UI and repository metadata.

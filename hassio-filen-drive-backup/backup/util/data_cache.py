@@ -20,7 +20,7 @@ KEY_NOTE = "note"
 
 CACHE_EXPIRATION_DAYS = 30
 
-VERSION_DEFUALT_IGNORE_UPGRADES = Version.parse("0.0.2")
+VERSION_DEFUALT_IGNORE_UPGRADES = Version.parse("0.0.3")
 
 
 @unique

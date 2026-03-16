@@ -69,7 +69,7 @@ exclude_addons: "core_configurator"
 enable_backup_stale_sensor: false
 notify_for_stale_backups: false
 
-# Enable server directly on port 1627
+# Enable server directly on port 1628
 expose_extra_server: true
 
 # Allow sending error reports
@@ -178,11 +178,11 @@ When false, the add-on will send a [persistent notification](https://github.com/
 
 The UI is available through Home Assistant [ingress](https://www.home-assistant.io/blog/2019/04/15/hassio-ingress/).
 
-It can also be exposed through a web server on port `1627`, which you can map to an externally visible port from the add-on `Network` panel. You can configure a few more options to add SSL or require your Home Assistant username/password.
+It can also be exposed through a web server on port `1628`, which you can map to an externally visible port from the add-on `Network` panel. You can configure a few more options to add SSL or require your Home Assistant username/password.
 
 #### Option: `expose_extra_server` (default: False)
 
-Expose the webserver on port `1627`. This is optional, as the add-on is already available with Home Assistant ingress.
+Expose the webserver on port `1628`. This is optional, as the add-on is already available with Home Assistant ingress.
 
 #### Option: `require_login` (default: False)
 

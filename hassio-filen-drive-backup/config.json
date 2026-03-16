@@ -1,6 +1,6 @@
 {
   "name": "Home Assistant Filen.io Backup",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "slug": "hassio_filen_drive_backup",
   "description": "Automatically manage backups between Home Assistant and Filen.io",
   "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
@@ -106,10 +106,10 @@
     "upload_limit_bytes_per_second": "float(0,)?"
   },
   "ports": {
-    "1627/tcp": 1627
+    "1628/tcp": 1628
   },
   "ports_description": {
-    "1627/tcp": "Direct access to the add-on without ingress.  Must be enabled in the settings, see 'expose_extra_server'."
+    "1628/tcp": "Direct access to the add-on without ingress.  Must be enabled in the settings, see 'expose_extra_server'."
   },
   "image": "ghcr.io/tom71/hassio-filen-drive-backup-{arch}"
 }
