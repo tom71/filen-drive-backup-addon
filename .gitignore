@@ -20,3 +20,6 @@ junit/test-results.xml
 coverage.xml
 hassio-filen-drive-backup/dev/data/data_cache.json
 hassio-filen-drive-backup/dev/data/*.backup
+local_docker_options.json
+test-results.xml
+*.log

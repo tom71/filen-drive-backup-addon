@@ -148,7 +148,7 @@ async def test_warn_upgrade_old_install(config: Config, time: Time):
             "upgrades": [
                 {
                     "prev_version": str(Version.default()),
-                    "new_version": "0.108.1",
+                    "new_version": "0.0.1",
                     "date": time.now().isoformat()
                 }
             ]
@@ -167,7 +167,7 @@ async def test_warn_upgrade_old_install_explicit_ignore_upgrades(config: Config,
             "upgrades": [
                 {
                     "prev_version": str(Version.default()),
-                    "new_version": "0.108.1",
+                    "new_version": "0.0.1",
                     "date": time.now().isoformat()
                 }
             ]
@@ -193,7 +193,7 @@ async def test_warn_upgrade_old_install_explicit_ignore_others(config: Config, t
             "upgrades": [
                 {
                     "prev_version": str(Version.default()),
-                    "new_version": "0.108.1",
+                    "new_version": "0.0.1",
                     "date": time.now().isoformat()
                 }
             ]
