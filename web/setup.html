@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Addon Setup</title>
+    <link rel="stylesheet" href="/app.css" />
+  </head>
+  <body>
+    <header class="hero hero-setup">
+      <div>
+        <p class="kicker">Filen Backup Add-on</p>
+        <h1>Setup</h1>
+        <p>Konfiguriere das Add-on und initialisiere den persistenten Filen Auth-State.</p>
+      </div>
+      <nav class="tabs">
+        <a class="tab active" href="/setup.html">Setup</a>
+        <a class="tab" href="/backups.html">Backups</a>
+      </nav>
+    </header>
+
+    <main class="grid">
+      <section class="panel">
+        <h2>Grundkonfiguration</h2>
+        <form id="setup-form" class="form">
+          <label>source_directory<input name="source_directory" required /></label>
+          <label>working_directory<input name="working_directory" required /></label>
+          <label>restore_directory<input name="restore_directory" /></label>
+          <label>encryption_passphrase<input type="password" name="encryption_passphrase" required /></label>
+
+          <label>storage_provider
+            <select name="storage_provider" id="storage_provider">
+              <option value="local">local</option>
+              <option value="filen">filen</option>
+            </select>
+          </label>
+
+          <div id="local-fields" class="group">
+            <label>local_storage_directory<input name="local_storage_directory" /></label>
+          </div>
+
+          <div id="filen-fields" class="group">
+            <label>filen_email<input name="filen_email" /></label>
+            <label>filen_password<input type="password" name="filen_password" /></label>
+            <label>filen_2fa_code<input name="filen_2fa_code" placeholder="XXXXXX falls 2FA aus" /></label>
+            <label>filen_target_folder<input name="filen_target_folder" /></label>
+            <label>filen_auth_state_path<input name="filen_auth_state_path" /></label>
+          </div>
+
+          <div class="actions">
+            <button type="submit" class="btn primary">Konfiguration speichern</button>
+            <button type="button" id="setup-auth" class="btn ghost">Filen Auth-State initialisieren</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel">
+        <h2>Status</h2>
+        <pre id="status" class="status">Bereit.</pre>
+      </section>
+    </main>
+
+    <script src="/setup.js"></script>
+  </body>
+</html>

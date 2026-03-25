@@ -1,0 +1,45 @@
+name: Filen Drive Backup
+version: 0.1.0
+slug: filen_drive_backup
+description: Erstellt verschluesselte Backups und legt sie ueber einen Storage-Provider ab.
+url: https://github.com/tom71/homeassistant-backup-addon
+arch:
+  - aarch64
+  - amd64
+  - armv7
+startup: services
+boot: auto
+init: false
+map:
+  - backup:rw
+  - share:rw
+  - addon_config:rw
+  - ssl
+options:
+  source_directory: /backup
+  working_directory: /tmp/hassio-filen-backup
+  restore_directory: /restore
+  encryption_passphrase: change-me
+  storage_provider: local
+  local_storage_directory: /share/filen-backups
+  filen_api_key: ""
+  filen_email: ""
+  filen_password: ""
+  filen_2fa_code: "XXXXXX"
+  filen_base_url: ""
+  filen_target_folder: /Home Assistant Backups
+  filen_auth_state_path: /addon_configs/filen_drive_backup/filen-auth-state.json
+schema:
+  source_directory: str
+  working_directory: str
+  restore_directory: str?
+  encryption_passphrase: password
+  storage_provider: list(local|filen)
+  local_storage_directory: str
+  filen_api_key: str?
+  filen_email: str?
+  filen_password: password?
+  filen_2fa_code: str?
+  filen_base_url: str?
+  filen_target_folder: str?
+  filen_auth_state_path: str?

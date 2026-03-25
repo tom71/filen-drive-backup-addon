@@ -1,0 +1,23 @@
+{
+  "sourceDirectory": "/backup",
+  "workingDirectory": "/tmp/hassio-filen-backup",
+  "restoreDirectory": "/restore",
+  "encryption": {
+    "passphrase": "change-me"
+  },
+  "storage": {
+    "type": "local",
+    "local": {
+      "baseDirectory": "/share/filen-backups"
+    },
+    "filen": {
+      "apiKey": "",
+      "email": "",
+      "password": "",
+      "twoFactorCode": "XXXXXX",
+      "baseUrl": "",
+      "targetFolder": "/Home Assistant Backups",
+      "authStatePath": "/addon_configs/filen_drive_backup/filen-auth-state.json"
+    }
+  }
+}

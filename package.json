@@ -1,0 +1,23 @@
+{
+  "name": "hassio-filen-drive-backup",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Encrypted Home Assistant backup prototype with pluggable storage providers.",
+  "type": "commonjs",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js backup",
+    "start:ui": "node dist/index.js ui 8099",
+    "dev": "tsc -w -p tsconfig.json"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@filen/sdk": "^0.3.12"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "typescript": "^5.8.3"
+  }
+}
