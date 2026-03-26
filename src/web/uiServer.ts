@@ -29,6 +29,8 @@ const MIME_TYPES: Record<string, string> = {
   ".svg": "image/svg+xml",
 };
 
+const STATIC_FILES = ["/setup.html", "/backups.html", "/app.css", "/setup.js", "/backups.js"];
+
 const DEFAULT_OPTIONS: JsonRecord = {
   source_directory: "/backup",
   working_directory: "/tmp/hassio-filen-backup",
@@ -76,19 +78,20 @@ export async function startUiServer(port: number): Promise<void> {
 async function routeRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
   const method = req.method ?? "GET";
   const url = req.url ?? "/";
+  const path = normalizeRoutePath(url);
   logDebug("ui", "Request received", { method, url });
 
-  if (method === "GET" && url === "/") {
+  if (method === "GET" && path === "/") {
     redirect(res, "/setup.html");
     return;
   }
 
-  if (method === "GET" && url === "/api/options") {
+  if (method === "GET" && path === "/api/options") {
     sendJson(res, 200, readOptions());
     return;
   }
 
-  if (method === "POST" && url === "/api/options") {
+  if (method === "POST" && path === "/api/options") {
     const payload = await readJsonBody(req);
     const merged = {
       ...DEFAULT_OPTIONS,
@@ -102,7 +105,7 @@ async function routeRequest(req: IncomingMessage, res: ServerResponse): Promise<
     return;
   }
 
-  if (method === "POST" && url === "/api/setup-filen-auth") {
+  if (method === "POST" && path === "/api/setup-filen-auth") {
     const config = loadConfig(getOptionsPath());
 
     if (config.storage.type !== "filen" || !config.storage.filen) {
@@ -120,13 +123,13 @@ async function routeRequest(req: IncomingMessage, res: ServerResponse): Promise<
     return;
   }
 
-  if (method === "GET" && url === "/api/backups") {
+  if (method === "GET" && path === "/api/backups") {
     sendJson(res, 200, await listBackups());
     return;
   }
 
   if (method === "GET") {
-    serveStatic(url, res);
+    serveStatic(path, res);
     return;
   }
 
@@ -134,6 +137,16 @@ async function routeRequest(req: IncomingMessage, res: ServerResponse): Promise<
 }
 
 function serveStatic(urlPath: string, res: ServerResponse): void {
+  if (urlPath === "/app" || urlPath.startsWith("/app/")) {
+    redirect(res, "/setup.html");
+    return;
+  }
+
+  if (urlPath.startsWith("/hassio_ingress/") || urlPath.startsWith("/api/hassio_ingress/")) {
+    redirect(res, "/setup.html");
+    return;
+  }
+
   const webRoot = resolve(process.cwd(), "web");
   const safePath = urlPath.startsWith("/") ? urlPath.slice(1) : urlPath;
   const target = resolve(webRoot, safePath);
@@ -150,6 +163,39 @@ function serveStatic(urlPath: string, res: ServerResponse): void {
   res.statusCode = 200;
   res.setHeader("Content-Type", mime);
   res.end(body);
+}
+
+function normalizeRoutePath(rawUrl: string): string {
+  const pathname = new URL(rawUrl, "http://localhost").pathname;
+
+  if (pathname === "/") {
+    return "/";
+  }
+
+  if (pathname.startsWith("/api/")) {
+    return pathname;
+  }
+
+  const apiIndex = pathname.indexOf("/api/");
+  if (apiIndex >= 0) {
+    return pathname.slice(apiIndex);
+  }
+
+  for (const filePath of STATIC_FILES) {
+    if (pathname === filePath || pathname.endsWith(filePath)) {
+      return filePath;
+    }
+  }
+
+  if (pathname === "/setup" || pathname.endsWith("/setup")) {
+    return "/setup.html";
+  }
+
+  if (pathname === "/backups" || pathname.endsWith("/backups")) {
+    return "/backups.html";
+  }
+
+  return pathname;
 }
 
 function getOptionsPath(): string {

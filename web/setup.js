@@ -17,7 +17,7 @@ form.addEventListener("submit", async (event) => {
 
   try {
     setStatus("Speichere Konfiguration ...");
-    const response = await fetch("/api/options", {
+    const response = await fetch("api/options", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -42,7 +42,7 @@ setupAuthButton.addEventListener("click", async () => {
     setStatus("Starte setup-filen-auth ...");
     const savePayload = collectFormData(form);
 
-    const saveResponse = await fetch("/api/options", {
+    const saveResponse = await fetch("api/options", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -56,7 +56,7 @@ setupAuthButton.addEventListener("click", async () => {
       throw new Error(saveJson.error || "Konfiguration konnte nicht gespeichert werden.");
     }
 
-    const response = await fetch("/api/setup-filen-auth", {
+    const response = await fetch("api/setup-filen-auth", {
       method: "POST",
     });
     const json = await response.json();
@@ -72,7 +72,7 @@ setupAuthButton.addEventListener("click", async () => {
 });
 
 async function init() {
-  const response = await fetch("/api/options");
+  const response = await fetch("api/options");
   const options = await response.json();
 
   if (!response.ok) {
