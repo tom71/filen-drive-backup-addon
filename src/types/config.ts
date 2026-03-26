@@ -1,11 +1,7 @@
-export type StorageProviderType = "local" | "filen";
+export type StorageProviderType = "filen";
 
 export interface EncryptionConfig {
   passphrase: string;
-}
-
-export interface LocalStorageConfig {
-  baseDirectory: string;
 }
 
 export interface FilenStorageConfig {
@@ -31,7 +27,6 @@ export interface FilenAuthState {
 
 export interface StorageConfig {
   type: StorageProviderType;
-  local?: LocalStorageConfig;
   filen?: FilenStorageConfig;
 }
 

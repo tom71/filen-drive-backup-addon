@@ -46,8 +46,7 @@ const DEFAULT_OPTIONS: JsonRecord = {
   working_directory: "/tmp/hassio-filen-backup",
   restore_directory: "/restore",
   encryption_passphrase: "",
-  storage_provider: "local",
-  local_storage_directory: "/share/filen-backups",
+  storage_provider: "filen",
   filen_email: "",
   filen_password: "",
   filen_2fa_code: "",
@@ -384,108 +383,55 @@ function validateOptions(options: JsonRecord): void {
 
   const provider = String(options.storage_provider ?? "").trim();
 
-  if (provider !== "local" && provider !== "filen") {
-    throw new Error("storage_provider muss local oder filen sein.");
-  }
-
-  if (provider === "local" && String(options.local_storage_directory ?? "").trim().length === 0) {
-    throw new Error("local_storage_directory darf bei local nicht leer sein.");
+  if (provider !== "filen") {
+    throw new Error("storage_provider muss filen sein.");
   }
 }
 
 async function listBackups(): Promise<JsonRecord> {
   const options = readOptions();
-  const provider = String(options.storage_provider ?? "local");
+  const provider = String(options.storage_provider ?? "filen");
   logInfo("ui", "Loading backups", { provider });
 
-  if (provider === "filen") {
-    const config = loadConfig(getOptionsPath());
+  const config = loadConfig(getOptionsPath());
 
-    if (!config.storage.filen) {
-      logWarn("ui", "Filen selected but config.storage.filen missing");
-      return {
-        provider,
-        items: [],
-        overview: buildOverview([]),
-        note: "Filen ist nicht vollstaendig konfiguriert.",
-      };
-    }
-
-    try {
-      const filenProvider = new FilenStorageProvider(config.storage.filen);
-      const remote = await filenProvider.listBackupFiles();
-      logInfo("ui", "Filen backup listing finished", {
-        targetFolder: remote.targetFolder,
-        count: remote.items.length,
-      });
-
-      return {
-        provider,
-        baseDirectory: remote.targetFolder,
-        items: remote.items,
-        overview: buildOverview(remote.items),
-        storage: remote.storage,
-      };
-    } catch (error: unknown) {
-      logError("ui", "Filen backup listing failed", {
-        error: error instanceof Error ? error.message : String(error),
-      });
-
-      return {
-        provider,
-        items: [],
-        overview: buildOverview([]),
-        note: error instanceof Error ? error.message : "Filen-Backups konnten nicht geladen werden.",
-      };
-    }
-  }
-
-  if (provider !== "local") {
-    logWarn("ui", "Unknown storage provider", { provider });
+  if (!config.storage.filen) {
+    logWarn("ui", "Filen selected but config.storage.filen missing");
     return {
       provider,
       items: [],
       overview: buildOverview([]),
-      note: "Unbekannter Provider.",
+      note: "Filen ist nicht vollstaendig konfiguriert.",
     };
   }
 
-  const baseDir = String(options.local_storage_directory ?? "").trim();
+  try {
+    const filenProvider = new FilenStorageProvider(config.storage.filen);
+    const remote = await filenProvider.listBackupFiles();
+    logInfo("ui", "Filen backup listing finished", {
+      targetFolder: remote.targetFolder,
+      count: remote.items.length,
+    });
 
-  if (baseDir.length === 0 || !existsSync(baseDir)) {
-    logWarn("ui", "Local backup directory not found", { baseDir });
+    return {
+      provider,
+      baseDirectory: remote.targetFolder,
+      items: remote.items,
+      overview: buildOverview(remote.items),
+      storage: remote.storage,
+    };
+  } catch (error: unknown) {
+    logError("ui", "Filen backup listing failed", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+
     return {
       provider,
       items: [],
       overview: buildOverview([]),
-      note: "Kein lokales Backup-Verzeichnis gefunden.",
+      note: error instanceof Error ? error.message : "Filen-Backups konnten nicht geladen werden.",
     };
   }
-
-  const items: BackupListItem[] = readdirSync(baseDir)
-    .filter((name) => name.endsWith(".enc"))
-    .map((name) => {
-      const stat = statSync(join(baseDir, name));
-
-      return {
-        name,
-        sizeBytes: stat.size,
-        modifiedAt: stat.mtime.toISOString(),
-      };
-    })
-    .sort((a, b) => b.modifiedAt.localeCompare(a.modifiedAt));
-
-  logInfo("ui", "Local backup listing finished", {
-    baseDir,
-    count: items.length,
-  });
-
-  return {
-    provider,
-    baseDirectory: baseDir,
-    items,
-    overview: buildOverview(items),
-  };
 }
 
 function buildOverview(items: BackupListItem[]): BackupOverview {

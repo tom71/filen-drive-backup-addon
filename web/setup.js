@@ -1,15 +1,10 @@
 const form = document.getElementById("setup-form");
-const providerSelect = document.getElementById("storage_provider");
-const localFields = document.getElementById("local-fields");
-const filenFields = document.getElementById("filen-fields");
 const statusEl = document.getElementById("status");
 const setupAuthButton = document.getElementById("setup-auth");
 
 init().catch((error) => {
   setStatus(`Fehler beim Laden: ${error.message}`, true);
 });
-
-providerSelect.addEventListener("change", toggleProviderFields);
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -88,8 +83,6 @@ async function init() {
 
     field.value = typeof value === "string" ? value : String(value ?? "");
   }
-
-  toggleProviderFields();
 }
 
 function collectFormData(formElement) {
@@ -102,13 +95,6 @@ function collectFormData(formElement) {
 
   return payload;
 }
-
-function toggleProviderFields() {
-  const provider = providerSelect.value;
-  localFields.style.display = provider === "local" ? "grid" : "none";
-  filenFields.style.display = provider === "filen" ? "grid" : "none";
-}
-
 function setStatus(message, isError = false) {
   statusEl.textContent = message;
   statusEl.classList.toggle("bad", isError);

@@ -1,5 +1,5 @@
 name: Filen Drive Backup
-version: 0.1.15
+version: 0.1.16
 slug: filen_drive_backup
 description: Erstellt verschluesselte Backups und legt sie ueber einen Storage-Provider ab.
 url: https://github.com/tom71/filen-drive-backup-addon
@@ -31,8 +31,7 @@ options:
   working_directory: /tmp/hassio-filen-backup
   restore_directory: /restore
   encryption_passphrase: change-me
-  storage_provider: local
-  local_storage_directory: /share/filen-backups
+  storage_provider: filen
   filen_api_key: ""
   filen_email: ""
   filen_password: ""
@@ -45,8 +44,7 @@ schema:
   working_directory: str
   restore_directory: str?
   encryption_passphrase: password
-  storage_provider: list(local|filen)
-  local_storage_directory: str
+  storage_provider: list(filen)
   filen_api_key: str?
   filen_email: str?
   filen_password: password?

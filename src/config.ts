@@ -12,9 +12,6 @@ interface RawConfig {
   };
   storage?: {
     type?: StorageProviderType;
-    local?: {
-      baseDirectory?: string;
-    };
     filen?: {
       apiKey?: string;
       email?: string;
@@ -30,7 +27,6 @@ interface RawConfig {
   restore_directory?: string;
   encryption_passphrase?: string;
   storage_provider?: StorageProviderType;
-  local_storage_directory?: string;
   filen_api_key?: string;
   filen_email?: string;
   filen_password?: string;
@@ -57,11 +53,7 @@ export function loadConfig(configPath = process.env.CONFIG_PATH ?? "config/confi
     (process.env.STORAGE_PROVIDER as StorageProviderType | undefined) ??
     fileConfig.storage?.type ??
     fileConfig.storage_provider ??
-    "local";
-  const localBaseDirectory =
-    process.env.LOCAL_STORAGE_DIRECTORY ??
-    fileConfig.storage?.local?.baseDirectory ??
-    fileConfig.local_storage_directory;
+    "filen";
   const filenApiKey =
     process.env.FILEN_API_KEY ?? fileConfig.storage?.filen?.apiKey ?? fileConfig.filen_api_key;
   const filenEmail =
@@ -88,8 +80,8 @@ export function loadConfig(configPath = process.env.CONFIG_PATH ?? "config/confi
     throw new Error("encryption.passphrase fehlt in der Konfiguration.");
   }
 
-  if (storageType === "local" && !localBaseDirectory) {
-    throw new Error("storage.local.baseDirectory fehlt fuer den lokalen Storage-Provider.");
+  if (storageType !== "filen") {
+    throw new Error("Dieses Add-on unterstuetzt nur noch storage_provider=filen.");
   }
 
   if (storageType === "filen" && !filenEmail && !filenApiKey && !filenAuthStatePath) {
@@ -105,11 +97,6 @@ export function loadConfig(configPath = process.env.CONFIG_PATH ?? "config/confi
     },
     storage: {
       type: storageType,
-      local: localBaseDirectory
-        ? {
-            baseDirectory: resolve(localBaseDirectory),
-          }
-        : undefined,
       filen: filenApiKey
         || filenEmail
         || filenAuthStatePath

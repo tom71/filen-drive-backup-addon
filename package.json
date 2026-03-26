@@ -1,6 +1,6 @@
 {
   "name": "filen-drive-backup-addon",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "private": true,
   "description": "Encrypted Home Assistant backup prototype with pluggable storage providers.",
   "type": "commonjs",

@@ -5,7 +5,6 @@ import { AppConfig, BackupResult } from "../types/config";
 import { ArchiveService } from "./archiveService";
 import { EncryptionService } from "./encryptionService";
 import { FilenStorageProvider } from "./filenStorageProvider";
-import { LocalStorageProvider } from "./localStorageProvider";
 import { StorageProvider } from "./storageProvider";
 
 export class BackupService {
@@ -62,19 +61,11 @@ export class BackupService {
   }
 
   private createStorageProvider(): StorageProvider {
-    if (this.config.storage.type === "filen") {
-      if (!this.config.storage.filen) {
-        throw new Error("Filen-Konfiguration fehlt.");
-      }
-
-      return new FilenStorageProvider(this.config.storage.filen);
+    if (!this.config.storage.filen) {
+      throw new Error("Filen-Konfiguration fehlt.");
     }
 
-    if (!this.config.storage.local) {
-      throw new Error("Lokale Storage-Konfiguration fehlt.");
-    }
-
-    return new LocalStorageProvider(this.config.storage.local);
+    return new FilenStorageProvider(this.config.storage.filen);
   }
 
   async runBackupFromFile(sourcePath: string, baseName: string): Promise<BackupResult> {
