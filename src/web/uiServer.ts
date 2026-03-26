@@ -9,8 +9,15 @@ type JsonRecord = Record<string, unknown>;
 
 type BackupListItem = {
   name: string;
+  path?: string;
   sizeBytes: number;
   modifiedAt: string;
+};
+
+type BackupOverview = {
+  totalCount: number;
+  totalSizeBytes: number;
+  newestModifiedAt: string | null;
 };
 
 const MIME_TYPES: Record<string, string> = {
@@ -101,7 +108,7 @@ async function routeRequest(req: IncomingMessage, res: ServerResponse): Promise<
   }
 
   if (method === "GET" && url === "/api/backups") {
-    sendJson(res, 200, listBackups());
+    sendJson(res, 200, await listBackups());
     return;
   }
 
@@ -173,15 +180,49 @@ function validateOptions(options: JsonRecord): void {
   }
 }
 
-function listBackups(): JsonRecord {
+async function listBackups(): Promise<JsonRecord> {
   const options = readOptions();
   const provider = String(options.storage_provider ?? "local");
+
+  if (provider === "filen") {
+    const config = loadConfig(getOptionsPath());
+
+    if (!config.storage.filen) {
+      return {
+        provider,
+        items: [],
+        overview: buildOverview([]),
+        note: "Filen ist nicht vollstaendig konfiguriert.",
+      };
+    }
+
+    try {
+      const filenProvider = new FilenStorageProvider(config.storage.filen);
+      const remote = await filenProvider.listBackupFiles();
+
+      return {
+        provider,
+        baseDirectory: remote.targetFolder,
+        items: remote.items,
+        overview: buildOverview(remote.items),
+        storage: remote.storage,
+      };
+    } catch (error: unknown) {
+      return {
+        provider,
+        items: [],
+        overview: buildOverview([]),
+        note: error instanceof Error ? error.message : "Filen-Backups konnten nicht geladen werden.",
+      };
+    }
+  }
 
   if (provider !== "local") {
     return {
       provider,
       items: [],
-      note: "Remote-Listing fuer filen ist in der UI noch nicht implementiert. Upload/Restore funktionieren ueber den Provider.",
+      overview: buildOverview([]),
+      note: "Unbekannter Provider.",
     };
   }
 
@@ -191,6 +232,7 @@ function listBackups(): JsonRecord {
     return {
       provider,
       items: [],
+      overview: buildOverview([]),
       note: "Kein lokales Backup-Verzeichnis gefunden.",
     };
   }
@@ -212,6 +254,29 @@ function listBackups(): JsonRecord {
     provider,
     baseDirectory: baseDir,
     items,
+    overview: buildOverview(items),
+  };
+}
+
+function buildOverview(items: BackupListItem[]): BackupOverview {
+  const totalSizeBytes = items.reduce((sum, item) => sum + item.sizeBytes, 0);
+
+  if (items.length === 0) {
+    return {
+      totalCount: 0,
+      totalSizeBytes,
+      newestModifiedAt: null,
+    };
+  }
+
+  const newestModifiedAt = items
+    .map((item) => item.modifiedAt)
+    .sort((a, b) => b.localeCompare(a))[0] ?? null;
+
+  return {
+    totalCount: items.length,
+    totalSizeBytes,
+    newestModifiedAt,
   };
 }
 

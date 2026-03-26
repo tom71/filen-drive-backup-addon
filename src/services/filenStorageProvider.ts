@@ -4,8 +4,39 @@ import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "n
 import { FilenAuthState, FilenStorageConfig } from "../types/config";
 import { DownloadResult, StorageProvider, UploadMetadata, UploadResult } from "./storageProvider";
 
+export type FilenRemoteBackupItem = {
+  name: string;
+  path: string;
+  sizeBytes: number;
+  modifiedAt: string;
+};
+
+export type FilenStorageUsage = {
+  usedBytes?: number;
+  availableBytes?: number;
+  capacityBytes?: number;
+};
+
 export class FilenStorageProvider implements StorageProvider {
   constructor(private readonly config: FilenStorageConfig) {}
+
+  async listBackupFiles(): Promise<{ targetFolder: string; items: FilenRemoteBackupItem[]; storage: FilenStorageUsage }> {
+    const { sdk, cleanup } = await this.createAuthenticatedSdk({});
+    const targetFolder = normalizeTargetFolder(this.config.targetFolder);
+
+    try {
+      const items = await this.collectEncFiles(sdk, targetFolder);
+      const storage = await this.readStorageUsage(sdk);
+
+      return {
+        targetFolder,
+        items: items.sort((a, b) => b.modifiedAt.localeCompare(a.modifiedAt)),
+        storage,
+      };
+    } finally {
+      await cleanup();
+    }
+  }
 
   async initializeAuthState(): Promise<{ authStatePath: string; userId: number }> {
     const { sdk, cleanup } = await this.createAuthenticatedSdk({
@@ -188,6 +219,222 @@ export class FilenStorageProvider implements StorageProvider {
       return false;
     }
   }
+
+  private async collectEncFiles(
+    sdk: InstanceType<typeof import("@filen/sdk").FilenSDK>,
+    rootPath: string,
+  ): Promise<FilenRemoteBackupItem[]> {
+    const queue = [rootPath];
+    const result: FilenRemoteBackupItem[] = [];
+
+    while (queue.length > 0) {
+      const currentPath = queue.shift();
+
+      if (!currentPath) {
+        continue;
+      }
+
+      const entries = await this.readDirectoryEntries(sdk, currentPath);
+
+      for (const entry of entries) {
+        const fileName = readString(entry, ["name", "basename", "filename"]);
+        const explicitPath = readString(entry, ["path", "fullPath", "filepath"]);
+        const entryPath = normalizeEntryPath(currentPath, fileName, explicitPath);
+
+        if (!entryPath) {
+          continue;
+        }
+
+        if (isDirectoryEntry(entry)) {
+          queue.push(entryPath);
+          continue;
+        }
+
+        if (!isFileEntry(entry) || !entryPath.endsWith(".enc")) {
+          continue;
+        }
+
+        const sizeBytes = readNumber(entry, ["size", "sizeBytes", "bytes"]);
+        const modifiedAt = readDate(entry, ["lastModified", "modifiedAt", "mtime", "updatedAt", "timestamp"]);
+
+        result.push({
+          name: fileName || posix.basename(entryPath),
+          path: entryPath,
+          sizeBytes: sizeBytes >= 0 ? sizeBytes : 0,
+          modifiedAt: modifiedAt || new Date(0).toISOString(),
+        });
+      }
+    }
+
+    return result;
+  }
+
+  private async readDirectoryEntries(
+    sdk: InstanceType<typeof import("@filen/sdk").FilenSDK>,
+    directoryPath: string,
+  ): Promise<Array<Record<string, unknown>>> {
+    const fsApi = sdk.fs() as unknown as {
+      readdir: (args: { path: string } | string) => Promise<unknown>;
+    };
+
+    let rawResult: unknown;
+
+    try {
+      rawResult = await fsApi.readdir({ path: directoryPath });
+    } catch {
+      rawResult = await fsApi.readdir(directoryPath);
+    }
+
+    return normalizeEntries(rawResult);
+  }
+
+  private async readStorageUsage(sdk: InstanceType<typeof import("@filen/sdk").FilenSDK>): Promise<FilenStorageUsage> {
+    const fsApi = sdk.fs() as unknown as {
+      statfs?: (args?: Record<string, unknown>) => Promise<unknown>;
+    };
+
+    if (typeof fsApi.statfs !== "function") {
+      return {};
+    }
+
+    try {
+      const stat = await fsApi.statfs({});
+      const normalized = normalizeRecord(stat);
+
+      if (!normalized) {
+        return {};
+      }
+
+      return {
+        usedBytes: readNumber(normalized, ["used", "usedBytes", "size"]),
+        availableBytes: readNumber(normalized, ["available", "availableBytes", "free"]),
+        capacityBytes: readNumber(normalized, ["capacity", "capacityBytes", "total"]),
+      };
+    } catch {
+      return {};
+    }
+  }
+}
+
+function normalizeEntries(rawResult: unknown): Array<Record<string, unknown>> {
+  if (Array.isArray(rawResult)) {
+    return rawResult.map((entry) => normalizeRecord(entry)).filter((entry): entry is Record<string, unknown> => Boolean(entry));
+  }
+
+  const record = normalizeRecord(rawResult);
+
+  if (!record) {
+    return [];
+  }
+
+  const candidates = [record.items, record.entries, record.files, record.nodes, record.children];
+
+  for (const candidate of candidates) {
+    if (!Array.isArray(candidate)) {
+      continue;
+    }
+
+    return candidate
+      .map((entry) => normalizeRecord(entry))
+      .filter((entry): entry is Record<string, unknown> => Boolean(entry));
+  }
+
+  return [];
+}
+
+function normalizeRecord(input: unknown): Record<string, unknown> | null {
+  if (!input || typeof input !== "object") {
+    return null;
+  }
+
+  return input as Record<string, unknown>;
+}
+
+function readString(input: Record<string, unknown>, keys: string[]): string {
+  for (const key of keys) {
+    const value = input[key];
+
+    if (typeof value === "string" && value.trim().length > 0) {
+      return value;
+    }
+  }
+
+  return "";
+}
+
+function readNumber(input: Record<string, unknown>, keys: string[]): number {
+  for (const key of keys) {
+    const value = input[key];
+
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return value;
+    }
+  }
+
+  return -1;
+}
+
+function readDate(input: Record<string, unknown>, keys: string[]): string {
+  for (const key of keys) {
+    const value = input[key];
+
+    if (value instanceof Date && !Number.isNaN(value.getTime())) {
+      return value.toISOString();
+    }
+
+    if (typeof value === "string" && value.trim().length > 0) {
+      const parsed = new Date(value);
+
+      if (!Number.isNaN(parsed.getTime())) {
+        return parsed.toISOString();
+      }
+    }
+
+    if (typeof value === "number" && Number.isFinite(value)) {
+      const parsed = new Date(value > 1_000_000_000_000 ? value : value * 1000);
+
+      if (!Number.isNaN(parsed.getTime())) {
+        return parsed.toISOString();
+      }
+    }
+  }
+
+  return "";
+}
+
+function isDirectoryEntry(entry: Record<string, unknown>): boolean {
+  const kind = readString(entry, ["type", "entryType", "kind"]).toLowerCase();
+  if (["directory", "dir", "folder"].includes(kind)) {
+    return true;
+  }
+
+  return entry.isDirectory === true || entry.directory === true;
+}
+
+function isFileEntry(entry: Record<string, unknown>): boolean {
+  const kind = readString(entry, ["type", "entryType", "kind"]).toLowerCase();
+
+  if (["file", "regular"].includes(kind)) {
+    return true;
+  }
+
+  if (entry.isFile === true || entry.file === true) {
+    return true;
+  }
+
+  return !isDirectoryEntry(entry);
+}
+
+function normalizeEntryPath(parentPath: string, name: string, explicitPath: string): string {
+  if (explicitPath) {
+    return explicitPath.startsWith("/") ? explicitPath : `/${explicitPath}`;
+  }
+
+  if (!name) {
+    return "";
+  }
+
+  return posix.join(parentPath, name);
 }
 
 function normalizeTargetFolder(targetFolder?: string): string {

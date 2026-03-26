@@ -22,19 +22,23 @@
     <main class="grid">
       <section class="panel">
         <div class="panel-head">
+          <h2>Backup Statistics</h2>
+        </div>
+        <div id="overview" class="stats"></div>
+      </section>
+
+      <section class="panel warning-panel">
+        <h2>Status</h2>
+        <p id="status-text" class="hint">Lade Status ...</p>
+      </section>
+
+      <section class="panel span-2">
+        <div class="panel-head">
           <h2>Backups</h2>
           <button id="reload" class="btn ghost">Neu laden</button>
         </div>
         <div id="meta" class="meta"></div>
         <div id="backup-list" class="list"></div>
-      </section>
-
-      <section class="panel">
-        <h2>Hinweis</h2>
-        <p class="hint">
-          Die Übersicht listet aktuell lokale Backups direkt. Für Filen werden Upload/Restore unterstützt;
-          ein Remote-Listing ist als nächster Schritt geplant.
-        </p>
       </section>
     </main>
 
