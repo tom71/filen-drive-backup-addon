@@ -3,6 +3,74 @@ const metaEl = document.getElementById("meta");
 const reloadButton = document.getElementById("reload");
 const overviewEl = document.getElementById("overview");
 const statusTextEl = document.getElementById("status-text");
+const backupNowBtn = document.getElementById("backup-now");
+const backupNowStatusEl = document.getElementById("backup-now-status");
+
+let backupNowPollInterval = null;
+
+backupNowBtn.addEventListener("click", async () => {
+  backupNowBtn.disabled = true;
+  backupNowStatusEl.className = "backup-now-status running";
+  backupNowStatusEl.textContent = "⏳ Backup wird gestartet ...";
+
+  try {
+    const res = await fetch("api/backup-now", { method: "POST" });
+    const data = await res.json();
+
+    if (!res.ok) {
+      backupNowStatusEl.className = "backup-now-status error";
+      backupNowStatusEl.textContent = "✗ " + (data.error || "Fehler beim Starten.");
+      backupNowBtn.disabled = false;
+      return;
+    }
+
+    backupNowStatusEl.textContent = "⏳ Backup läuft ...";
+    startBackupNowPolling();
+  } catch (err) {
+    backupNowStatusEl.className = "backup-now-status error";
+    backupNowStatusEl.textContent = "✗ Netzwerkfehler: " + err.message;
+    backupNowBtn.disabled = false;
+  }
+});
+
+function startBackupNowPolling() {
+  if (backupNowPollInterval) {
+    clearInterval(backupNowPollInterval);
+  }
+
+  backupNowPollInterval = setInterval(async () => {
+    try {
+      const res = await fetch("api/backup-status");
+      const data = await res.json();
+
+      if (data.status === "running") {
+        const elapsed = Math.round((Date.now() - new Date(data.startedAt).getTime()) / 1000);
+        backupNowStatusEl.className = "backup-now-status running";
+        backupNowStatusEl.textContent = `⏳ Backup läuft ... (${elapsed}s)`;
+        return;
+      }
+
+      clearInterval(backupNowPollInterval);
+      backupNowPollInterval = null;
+      backupNowBtn.disabled = false;
+
+      if (data.status === "done") {
+        const r = data.result || {};
+        backupNowStatusEl.className = "backup-now-status done";
+        backupNowStatusEl.textContent =
+          `✓ Backup abgeschlossen: ${r.archiveName || "-"}` +
+          (r.uploadedTo ? `\nGespeichert: ${r.uploadedTo}` : "") +
+          (r.sizeBytes ? `\nGröße: ${formatSize(r.sizeBytes)}` : "");
+        loadBackups().catch(() => {});
+      } else if (data.status === "error") {
+        backupNowStatusEl.className = "backup-now-status error";
+        backupNowStatusEl.textContent = "✗ Backup fehlgeschlagen: " + (data.error || "Unbekannter Fehler");
+      }
+    } catch {
+      // Polling läuft weiter
+    }
+  }, 2000);
+}
 
 reloadButton.addEventListener("click", () => {
   loadBackups().catch((error) => {

@@ -3,10 +3,19 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSy
 import { dirname, extname, join, resolve } from "node:path";
 
 import { loadConfig } from "../config";
+import { BackupService } from "../services/backupService";
 import { FilenStorageProvider } from "../services/filenStorageProvider";
 import { logDebug, logError, logInfo, logWarn } from "../utils/logger";
 
 type JsonRecord = Record<string, unknown>;
+
+type BackupNowState =
+  | { status: "idle" }
+  | { status: "running"; startedAt: string }
+  | { status: "done"; startedAt: string; finishedAt: string; result: JsonRecord }
+  | { status: "error"; startedAt: string; finishedAt: string; error: string };
+
+let backupNowState: BackupNowState = { status: "idle" };
 
 type BackupListItem = {
   name: string;
@@ -128,6 +137,49 @@ async function routeRequest(req: IncomingMessage, res: ServerResponse): Promise<
     return;
   }
 
+  if (method === "POST" && path === "/api/backup-now") {
+    if (backupNowState.status === "running") {
+      sendJson(res, 409, { error: "Backup läuft bereits." });
+      return;
+    }
+
+    const startedAt = new Date().toISOString();
+    backupNowState = { status: "running", startedAt };
+    logInfo("ui", "Manuelles Backup gestartet");
+
+    // Fire-and-forget – Client poolt /api/backup-status
+    (async () => {
+      try {
+        const config = loadConfig(getOptionsPath());
+        const service = new BackupService(config);
+        const result = await service.runBackup();
+        backupNowState = {
+          status: "done",
+          startedAt,
+          finishedAt: new Date().toISOString(),
+          result: result as unknown as JsonRecord,
+        };
+        logInfo("ui", "Manuelles Backup abgeschlossen", result);
+      } catch (err: unknown) {
+        backupNowState = {
+          status: "error",
+          startedAt,
+          finishedAt: new Date().toISOString(),
+          error: err instanceof Error ? err.message : String(err),
+        };
+        logError("ui", "Manuelles Backup fehlgeschlagen", { error: backupNowState.error });
+      }
+    })();
+
+    sendJson(res, 202, { message: "Backup gestartet.", startedAt });
+    return;
+  }
+
+  if (method === "GET" && path === "/api/backup-status") {
+    sendJson(res, 200, backupNowState);
+    return;
+  }
+
   if (method === "GET" && path === "/info") {
     sendJson(res, 200, {
       name: "Filen Drive Backup",
@@ -197,7 +249,7 @@ function getWebRoot(): string {
 
 function normalizeRoutePath(rawUrl: string): string {
   const pathname = new URL(rawUrl, "http://localhost").pathname;
-  const API_ROUTES = ["/api/options", "/api/setup-filen-auth", "/api/backups"];
+  const API_ROUTES = ["/api/options", "/api/setup-filen-auth", "/api/backups", "/api/backup-now", "/api/backup-status"];
 
   if (pathname === "/") {
     return "/";
