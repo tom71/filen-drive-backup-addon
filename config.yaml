@@ -16,7 +16,7 @@ ingress_entry: /
 ingress_port: 8099
 hassio_api: true
 homeassistant_api: true
-hassio_role: backup
+hassio_role: manager
 panel_admin: true
 panel_title: Filen Drive Backup
 panel_icon: mdi:cloud-upload-outline
