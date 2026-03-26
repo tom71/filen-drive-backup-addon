@@ -186,8 +186,12 @@ function normalizeRoutePath(rawUrl: string): string {
     }
   }
 
-  // Handle hassio_ingress patterns before generic /api passthrough.
-  if (pathname.startsWith("/hassio_ingress/") || pathname.startsWith("/api/hassio_ingress/")) {
+  // Handle HA ingress patterns before generic /api passthrough.
+  if (
+    pathname.startsWith("/hassio_ingress/") ||
+    pathname.startsWith("/api/hassio_ingress/") ||
+    pathname.startsWith("/hassio/ingress/")
+  ) {
     const appIndex = pathname.indexOf("/app");
     const setupIndex = pathname.indexOf("/setup");
     const backupsIndex = pathname.indexOf("/backups");
