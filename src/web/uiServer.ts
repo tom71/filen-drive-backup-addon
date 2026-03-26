@@ -61,7 +61,7 @@ const DEFAULT_OPTIONS: JsonRecord = {
   filen_password: "",
   filen_2fa_code: "",
   filen_target_folder: "/Home Assistant Backups",
-  filen_auth_state_path: "/addon_configs/filen_drive_backup/filen-auth-state.json",
+  filen_auth_state_path: "/data/filen-auth-state.json",
 };
 
 export async function startUiServer(port: number): Promise<void> {

@@ -1,5 +1,5 @@
 name: Filen Drive Backup
-version: 0.1.22
+version: 0.1.23
 slug: filen_drive_backup
 description: Erstellt verschluesselte Backups und legt sie ueber einen Storage-Provider ab.
 url: https://github.com/tom71/filen-drive-backup-addon
@@ -49,7 +49,7 @@ options:
   filen_2fa_code: "XXXXXX"
   filen_base_url: ""
   filen_target_folder: /Home Assistant Backups
-  filen_auth_state_path: /addon_configs/filen_drive_backup/filen-auth-state.json
+  filen_auth_state_path: /data/filen-auth-state.json
 schema:
   source_directory: str
   working_directory: str

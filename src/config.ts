@@ -84,7 +84,7 @@ export function loadConfig(configPath = process.env.CONFIG_PATH ?? "config/confi
     process.env.FILEN_AUTH_STATE_PATH ??
     fileConfig.storage?.filen?.authStatePath ??
     fileConfig.filen_auth_state_path ??
-    "/addon_configs/filen_drive_backup/filen-auth-state.json";
+    "/data/filen-auth-state.json";
   const maxBackupsInFilenDrive = parseInteger(
     process.env.MAX_BACKUPS_IN_FILEN_DRIVE ?? fileConfig.max_backups_in_filen_drive,
   );

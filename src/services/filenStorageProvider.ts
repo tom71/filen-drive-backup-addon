@@ -215,7 +215,7 @@ export class FilenStorageProvider implements StorageProvider {
   }
 
   private resolveAuthStatePath(): string {
-    return this.config.authStatePath || "/addon_configs/filen_drive_backup/filen-auth-state.json";
+    return this.config.authStatePath || "/data/filen-auth-state.json";
   }
 
   private async isSdkSessionUsable(sdk: InstanceType<typeof import("@filen/sdk").FilenSDK>): Promise<boolean> {
