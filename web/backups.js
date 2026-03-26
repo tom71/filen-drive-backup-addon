@@ -18,6 +18,12 @@ backupNowBtn.addEventListener("click", async () => {
     const data = await res.json();
 
     if (!res.ok) {
+      if (res.status === 409) {
+        // Backup läuft bereits – Polling starten statt Fehler anzeigen
+        backupNowStatusEl.textContent = "⏳ Backup läuft ...";
+        startBackupNowPolling();
+        return;
+      }
       backupNowStatusEl.className = "backup-now-status error";
       backupNowStatusEl.textContent = "✗ " + (data.error || "Fehler beim Starten.");
       backupNowBtn.disabled = false;
@@ -81,6 +87,22 @@ reloadButton.addEventListener("click", () => {
 loadBackups().catch((error) => {
   renderError(error.message);
 });
+
+// Beim Seitenload prüfen ob ein Backup bereits läuft
+(async () => {
+  try {
+    const res = await fetch("api/backup-status");
+    const data = await res.json();
+    if (data.status === "running") {
+      backupNowBtn.disabled = true;
+      backupNowStatusEl.className = "backup-now-status running";
+      backupNowStatusEl.textContent = "⏳ Backup läuft ...";
+      startBackupNowPolling();
+    }
+  } catch {
+    // Ignorieren
+  }
+})();
 
 async function loadBackups() {
   listEl.innerHTML = "";
