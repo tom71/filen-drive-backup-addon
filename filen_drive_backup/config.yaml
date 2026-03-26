@@ -13,7 +13,6 @@ boot: auto
 init: false
 ingress: true
 ingress_port: 8099
-ingress_entry: true
 panel_admin: true
 panel_title: Filen Drive Backup
 panel_icon: mdi:cloud-upload-outline
