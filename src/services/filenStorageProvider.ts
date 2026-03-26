@@ -133,13 +133,9 @@ export class FilenStorageProvider implements StorageProvider {
               } catch {
                 // Best effort cleanup only.
               }
-
-              sdkFromState.logout();
             },
           };
         }
-
-        sdkFromState.logout();
       }
     }
 
@@ -176,8 +172,6 @@ export class FilenStorageProvider implements StorageProvider {
         } catch {
           // Best effort cleanup only.
         }
-
-        sdk.logout();
       },
     };
   }
