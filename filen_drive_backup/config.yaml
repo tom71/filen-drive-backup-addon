@@ -1,5 +1,5 @@
 name: Filen Drive Backup
-version: 0.1.8
+version: 0.1.9
 slug: filen_drive_backup
 description: Erstellt verschluesselte Backups und legt sie ueber einen Storage-Provider ab.
 url: https://github.com/tom71/filen-drive-backup-addon
@@ -12,6 +12,7 @@ startup: services
 boot: auto
 init: false
 ingress: true
+ingress_entry: /
 ingress_port: 8099
 panel_admin: true
 panel_title: Filen Drive Backup
