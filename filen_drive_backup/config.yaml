@@ -1,5 +1,5 @@
 name: Filen Drive Backup
-version: 0.1.0
+version: 0.1.0-beta.1
 slug: filen_drive_backup
 description: Erstellt verschluesselte Backups und legt sie ueber einen Storage-Provider ab.
 url: https://github.com/tom71/hassio-filen-drive-backup
