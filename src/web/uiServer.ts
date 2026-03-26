@@ -132,7 +132,7 @@ async function routeRequest(req: IncomingMessage, res: ServerResponse): Promise<
     sendJson(res, 200, {
       name: "Filen Drive Backup",
       slug: "filen_drive_backup",
-      ui: "/setup.html",
+      ui: "./",
       documentation: "https://github.com/tom71/filen-drive-backup-addon/blob/main/README.md",
       issue_tracker: "https://github.com/tom71/filen-drive-backup-addon/issues",
     });
@@ -199,11 +199,11 @@ function normalizeRoutePath(rawUrl: string): string {
     const docsIndex = pathname.indexOf("/documentation");
 
     if (appIndex >= 0) {
-      return "/setup.html";
+      return "/";
     }
 
     if (setupIndex >= 0) {
-      return "/setup.html";
+      return "/";
     }
 
     if (backupsIndex >= 0) {
@@ -218,8 +218,8 @@ function normalizeRoutePath(rawUrl: string): string {
       return "/documentation";
     }
 
-    // Ingress base paths like /api/hassio_ingress/<token>/ should render UI.
-    return "/setup.html";
+    // Ingress base paths like /api/hassio_ingress/<token>/ should render UI root.
+    return "/";
   }
 
   if (pathname.startsWith("/api/")) {
@@ -256,7 +256,7 @@ function normalizeRoutePath(rawUrl: string): string {
   // Handle HA ingress app patterns: /app/[slug] or /app/[instance-id]_[slug]
   // These should redirect to setup page
   if (pathname === "/app" || pathname.startsWith("/app/")) {
-    return "/setup.html";
+    return "/";
   }
 
   return pathname;
