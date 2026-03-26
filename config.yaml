@@ -58,7 +58,7 @@ schema:
   storage_provider: list(filen)
   max_backups_in_filen_drive: int(1,)?
   days_between_backups: int(1,)?
-  backup_time_of_day: match(^([01]\\d|2[0-3]):[0-5]\\d$)?
+  backup_time_of_day: match(^([01][0-9]|2[0-3]):[0-5][0-9]$)?
   delete_after_upload: bool?
   backup_name: str?
   generational_days: int(0,)?
