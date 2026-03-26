@@ -213,6 +213,9 @@ function normalizeRoutePath(rawUrl: string): string {
     if (docsIndex >= 0) {
       return "/documentation";
     }
+
+    // Ingress base paths like /api/hassio_ingress/<token>/ should render UI.
+    return "/setup.html";
   }
 
   if (pathname.startsWith("/api/")) {
