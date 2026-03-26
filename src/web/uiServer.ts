@@ -173,9 +173,46 @@ function serveStatic(urlPath: string, res: ServerResponse): void {
 
 function normalizeRoutePath(rawUrl: string): string {
   const pathname = new URL(rawUrl, "http://localhost").pathname;
+  const API_ROUTES = ["/api/options", "/api/setup-filen-auth", "/api/backups"];
 
   if (pathname === "/") {
     return "/";
+  }
+
+  for (const apiRoute of API_ROUTES) {
+    const routeIndex = pathname.indexOf(apiRoute);
+    if (routeIndex >= 0) {
+      return pathname.slice(routeIndex);
+    }
+  }
+
+  // Handle hassio_ingress patterns before generic /api passthrough.
+  if (pathname.startsWith("/hassio_ingress/") || pathname.startsWith("/api/hassio_ingress/")) {
+    const appIndex = pathname.indexOf("/app");
+    const setupIndex = pathname.indexOf("/setup");
+    const backupsIndex = pathname.indexOf("/backups");
+    const infoIndex = pathname.indexOf("/info");
+    const docsIndex = pathname.indexOf("/documentation");
+
+    if (appIndex >= 0) {
+      return "/setup.html";
+    }
+
+    if (setupIndex >= 0) {
+      return "/setup.html";
+    }
+
+    if (backupsIndex >= 0) {
+      return "/backups.html";
+    }
+
+    if (infoIndex >= 0) {
+      return "/info";
+    }
+
+    if (docsIndex >= 0) {
+      return "/documentation";
+    }
   }
 
   if (pathname.startsWith("/api/")) {
@@ -212,11 +249,6 @@ function normalizeRoutePath(rawUrl: string): string {
   // Handle HA ingress app patterns: /app/[slug] or /app/[instance-id]_[slug]
   // These should redirect to setup page
   if (pathname === "/app" || pathname.startsWith("/app/")) {
-    return "/setup.html";
-  }
-
-  // Handle hassio_ingress patterns
-  if (pathname.startsWith("/hassio_ingress/") || pathname.startsWith("/api/hassio_ingress/")) {
     return "/setup.html";
   }
 
