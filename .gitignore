@@ -5,3 +5,8 @@ node_modules/
 tmp/
 .tmp-ui-test/
 config/config.json
+.cache_ggshield
+filen_drive_backup/config/config.json
+**/config.json
+!config/config.example.json
+!**/config.example.json
