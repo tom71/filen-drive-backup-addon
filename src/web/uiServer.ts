@@ -82,7 +82,7 @@ async function routeRequest(req: IncomingMessage, res: ServerResponse): Promise<
   logDebug("ui", "Request received", { method, url });
 
   if (method === "GET" && path === "/") {
-    redirect(res, "/setup.html");
+    serveStatic("/setup.html", res);
     return;
   }
 
