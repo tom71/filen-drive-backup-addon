@@ -30,12 +30,26 @@ export interface StorageConfig {
   filen?: FilenStorageConfig;
 }
 
+export interface BackupPolicyConfig {
+  maxBackupsInFilenDrive?: number;
+  daysBetweenBackups?: number;
+  backupTimeOfDay?: string;
+  deleteAfterUpload: boolean;
+  backupNameTemplate: string;
+  generationalDays?: number;
+  generationalWeeks?: number;
+  sendErrorReports: boolean;
+  excludeFolders: string[];
+  excludeAddons: string[];
+}
+
 export interface AppConfig {
   sourceDirectory?: string;
   workingDirectory: string;
   restoreDirectory?: string;
   encryption: EncryptionConfig;
   storage: StorageConfig;
+  backupPolicy: BackupPolicyConfig;
 }
 
 export interface BackupResult {

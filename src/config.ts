@@ -34,6 +34,16 @@ interface RawConfig {
   filen_base_url?: string;
   filen_target_folder?: string;
   filen_auth_state_path?: string;
+  max_backups_in_filen_drive?: number;
+  days_between_backups?: number;
+  backup_time_of_day?: string;
+  delete_after_upload?: boolean;
+  backup_name?: string;
+  generational_days?: number;
+  generational_weeks?: number;
+  send_error_reports?: boolean;
+  exclude_folders?: string;
+  exclude_addons?: string;
 }
 
 export function loadConfig(configPath = process.env.CONFIG_PATH ?? "config/config.json"): AppConfig {
@@ -75,6 +85,36 @@ export function loadConfig(configPath = process.env.CONFIG_PATH ?? "config/confi
     fileConfig.storage?.filen?.authStatePath ??
     fileConfig.filen_auth_state_path ??
     "/addon_configs/filen_drive_backup/filen-auth-state.json";
+  const maxBackupsInFilenDrive = parseInteger(
+    process.env.MAX_BACKUPS_IN_FILEN_DRIVE ?? fileConfig.max_backups_in_filen_drive,
+  );
+  const daysBetweenBackups = parseInteger(
+    process.env.DAYS_BETWEEN_BACKUPS ?? fileConfig.days_between_backups,
+  );
+  const backupTimeOfDay =
+    process.env.BACKUP_TIME_OF_DAY ?? fileConfig.backup_time_of_day ?? undefined;
+  const deleteAfterUpload = parseBoolean(
+    process.env.DELETE_AFTER_UPLOAD ?? fileConfig.delete_after_upload,
+    true,
+  );
+  const backupNameTemplate =
+    process.env.BACKUP_NAME ?? fileConfig.backup_name ?? "{type} Backup HA {version_ha}";
+  const generationalDays = parseInteger(
+    process.env.GENERATIONAL_DAYS ?? fileConfig.generational_days,
+  );
+  const generationalWeeks = parseInteger(
+    process.env.GENERATIONAL_WEEKS ?? fileConfig.generational_weeks,
+  );
+  const sendErrorReports = parseBoolean(
+    process.env.SEND_ERROR_REPORTS ?? fileConfig.send_error_reports,
+    true,
+  );
+  const excludeFolders = parseCsv(
+    process.env.EXCLUDE_FOLDERS ?? fileConfig.exclude_folders,
+  );
+  const excludeAddons = parseCsv(
+    process.env.EXCLUDE_ADDONS ?? fileConfig.exclude_addons,
+  );
 
   if (!passphrase) {
     throw new Error("encryption.passphrase fehlt in der Konfiguration.");
@@ -111,7 +151,63 @@ export function loadConfig(configPath = process.env.CONFIG_PATH ?? "config/confi
           }
         : undefined,
     },
+    backupPolicy: {
+      maxBackupsInFilenDrive,
+      daysBetweenBackups,
+      backupTimeOfDay,
+      deleteAfterUpload,
+      backupNameTemplate,
+      generationalDays,
+      generationalWeeks,
+      sendErrorReports,
+      excludeFolders,
+      excludeAddons,
+    },
   };
+}
+
+function parseBoolean(value: unknown, fallback = false): boolean {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+
+    if (["1", "true", "yes", "on"].includes(normalized)) {
+      return true;
+    }
+
+    if (["0", "false", "no", "off"].includes(normalized)) {
+      return false;
+    }
+  }
+
+  return fallback;
+}
+
+function parseInteger(value: unknown): number | undefined {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number.parseInt(value.trim(), 10);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }
+
+  return undefined;
+}
+
+function parseCsv(value: unknown): string[] {
+  if (typeof value !== "string") {
+    return [];
+  }
+
+  return value
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
 }
 
 function readConfigFile(configPath: string): RawConfig {

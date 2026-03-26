@@ -2,6 +2,7 @@ import { loadConfig } from "./config";
 import { BackupService } from "./services/backupService";
 import { FilenStorageProvider } from "./services/filenStorageProvider";
 import { RestoreService } from "./services/restoreService";
+import { isSupervisorAvailable, sendHaFailureNotification } from "./services/supervisorService";
 import { startUiServer } from "./web/uiServer";
 
 async function main(): Promise<void> {
@@ -61,6 +62,23 @@ async function main(): Promise<void> {
 
 main().catch((error: unknown) => {
   const message = error instanceof Error ? error.message : "Unbekannter Fehler";
+  const command = process.argv[2] ?? "backup";
+
+  if (command === "backup") {
+    try {
+      const config = loadConfig();
+
+      if (config.backupPolicy.sendErrorReports && isSupervisorAvailable()) {
+        void sendHaFailureNotification(
+          "Filen Drive Backup fehlgeschlagen",
+          `Ein geplanter oder manueller Backup-Lauf ist fehlgeschlagen.\n\nFehler: ${message}`,
+        );
+      }
+    } catch {
+      // Fehlerbenachrichtigung ist best effort und darf den Exit-Pfad nicht blockieren.
+    }
+  }
+
   process.stderr.write(`${message}\n`);
   process.exitCode = 1;
 });

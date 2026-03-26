@@ -1,5 +1,5 @@
 name: Filen Drive Backup
-version: 0.1.16
+version: 0.1.17
 slug: filen_drive_backup
 description: Erstellt verschluesselte Backups und legt sie ueber einen Storage-Provider ab.
 url: https://github.com/tom71/filen-drive-backup-addon
@@ -15,6 +15,7 @@ ingress: true
 ingress_entry: /
 ingress_port: 8099
 hassio_api: true
+homeassistant_api: true
 hassio_role: backup
 panel_admin: true
 panel_title: Filen Drive Backup
@@ -32,6 +33,16 @@ options:
   restore_directory: /restore
   encryption_passphrase: change-me
   storage_provider: filen
+  max_backups_in_filen_drive: 5
+  days_between_backups: 3
+  backup_time_of_day: "13:30"
+  delete_after_upload: true
+  backup_name: "{type} Backup HA {version_ha}"
+  generational_days: 3
+  generational_weeks: 4
+  send_error_reports: true
+  exclude_folders: "homeassistant,ssl,share,addons/local,media"
+  exclude_addons: "core_configurator"
   filen_api_key: ""
   filen_email: ""
   filen_password: ""
@@ -45,6 +56,16 @@ schema:
   restore_directory: str?
   encryption_passphrase: password
   storage_provider: list(filen)
+  max_backups_in_filen_drive: int(1,)?
+  days_between_backups: int(1,)?
+  backup_time_of_day: match(^([01]\\d|2[0-3]):[0-5]\\d$)?
+  delete_after_upload: bool?
+  backup_name: str?
+  generational_days: int(0,)?
+  generational_weeks: int(0,)?
+  send_error_reports: bool?
+  exclude_folders: str?
+  exclude_addons: str?
   filen_api_key: str?
   filen_email: str?
   filen_password: password?

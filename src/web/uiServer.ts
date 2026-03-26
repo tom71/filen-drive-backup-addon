@@ -5,7 +5,7 @@ import { dirname, extname, join, resolve } from "node:path";
 import { loadConfig } from "../config";
 import { BackupService } from "../services/backupService";
 import { FilenStorageProvider } from "../services/filenStorageProvider";
-import { createHaFullBackup, isSupervisorAvailable } from "../services/supervisorService";
+import { createHaBackup, deleteHaBackup, isSupervisorAvailable, sendHaFailureNotification } from "../services/supervisorService";
 import { logDebug, logError, logInfo, logWarn } from "../utils/logger";
 
 type JsonRecord = Record<string, unknown>;
@@ -47,6 +47,16 @@ const DEFAULT_OPTIONS: JsonRecord = {
   restore_directory: "/restore",
   encryption_passphrase: "",
   storage_provider: "filen",
+  max_backups_in_filen_drive: 5,
+  days_between_backups: 3,
+  backup_time_of_day: "13:30",
+  delete_after_upload: true,
+  backup_name: "{type} Backup HA {version_ha}",
+  generational_days: 3,
+  generational_weeks: 4,
+  send_error_reports: true,
+  exclude_folders: "homeassistant,ssl,share,addons/local,media",
+  exclude_addons: "core_configurator",
   filen_email: "",
   filen_password: "",
   filen_2fa_code: "",
@@ -103,8 +113,9 @@ async function routeRequest(req: IncomingMessage, res: ServerResponse): Promise<
   if (method === "POST" && path === "/api/options") {
     const payload = await readJsonBody(req);
     const merged = {
-      ...DEFAULT_OPTIONS,
+      ...readOptions(),
       ...payload,
+      storage_provider: "filen",
     };
 
     validateOptions(merged);
@@ -149,18 +160,30 @@ async function routeRequest(req: IncomingMessage, res: ServerResponse): Promise<
 
     // Fire-and-forget – Client poolt /api/backup-status
     (async () => {
+      const rawOptions = readOptions();
+      const shouldNotifyOnFailure = readBooleanOption(rawOptions.send_error_reports, true);
+
       try {
         const config = loadConfig(getOptionsPath());
         const service = new BackupService(config);
         let result;
 
         if (isSupervisorAvailable()) {
-          logInfo("ui", "Supervisor verfügbar – erstelle HA Full Backup via Supervisor API");
-          const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-          const backupName = `Filen-Backup-${timestamp}`;
-          const tarPath = await createHaFullBackup(backupName);
-          const baseName = `ha-backup-${timestamp}.tar`;
-          result = await service.runBackupFromFile(tarPath, baseName);
+          logInfo("ui", "Supervisor verfügbar – erstelle HA Backup via Supervisor API", {
+            backupNameTemplate: config.backupPolicy.backupNameTemplate,
+            excludeFolders: config.backupPolicy.excludeFolders,
+            excludeAddons: config.backupPolicy.excludeAddons,
+          });
+          const createdBackup = await createHaBackup({
+            backupNameTemplate: config.backupPolicy.backupNameTemplate,
+            excludeFolders: config.backupPolicy.excludeFolders,
+            excludeAddons: config.backupPolicy.excludeAddons,
+          });
+          result = await service.runBackupFromFile(createdBackup.tarPath, `${createdBackup.slug}.tar`);
+
+          if (config.backupPolicy.deleteAfterUpload) {
+            await deleteHaBackup(createdBackup.slug);
+          }
         } else {
           logInfo("ui", "Kein Supervisor – archiviere source_directory");
           result = await service.runBackup();
@@ -174,13 +197,27 @@ async function routeRequest(req: IncomingMessage, res: ServerResponse): Promise<
         };
         logInfo("ui", "Manuelles Backup abgeschlossen", result);
       } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
         backupNowState = {
           status: "error",
           startedAt,
           finishedAt: new Date().toISOString(),
-          error: err instanceof Error ? err.message : String(err),
+          error: message,
         };
         logError("ui", "Manuelles Backup fehlgeschlagen", { error: backupNowState.error });
+
+        if (shouldNotifyOnFailure && isSupervisorAvailable()) {
+          try {
+            await sendHaFailureNotification(
+              "Filen Drive Backup fehlgeschlagen",
+              `Das manuelle Backup konnte nicht abgeschlossen werden.\n\nFehler: ${message}`,
+            );
+          } catch (notifyError: unknown) {
+            logError("ui", "HA Fehlerbenachrichtigung fehlgeschlagen", {
+              error: notifyError instanceof Error ? notifyError.message : String(notifyError),
+            });
+          }
+        }
       }
     })();
 
@@ -386,6 +423,11 @@ function validateOptions(options: JsonRecord): void {
   if (provider !== "filen") {
     throw new Error("storage_provider muss filen sein.");
   }
+
+  const backupTimeOfDay = String(options.backup_time_of_day ?? "").trim();
+  if (backupTimeOfDay.length > 0 && !/^([01]\d|2[0-3]):[0-5]\d$/.test(backupTimeOfDay)) {
+    throw new Error("backup_time_of_day muss im Format HH:MM vorliegen.");
+  }
 }
 
 async function listBackups(): Promise<JsonRecord> {
@@ -432,6 +474,24 @@ async function listBackups(): Promise<JsonRecord> {
       note: error instanceof Error ? error.message : "Filen-Backups konnten nicht geladen werden.",
     };
   }
+}
+
+function readBooleanOption(value: unknown, fallback: boolean): boolean {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (["1", "true", "yes", "on"].includes(normalized)) {
+      return true;
+    }
+    if (["0", "false", "no", "off"].includes(normalized)) {
+      return false;
+    }
+  }
+
+  return fallback;
 }
 
 function buildOverview(items: BackupListItem[]): BackupOverview {
