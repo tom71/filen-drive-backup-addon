@@ -21,7 +21,7 @@ async function loadBackups() {
   statusTextEl.className = "hint";
   statusTextEl.textContent = "Lade Status ...";
 
-  const response = await fetch("/api/backups");
+  const response = await fetch("api/backups");
   const payload = await response.json();
 
   if (!response.ok) {

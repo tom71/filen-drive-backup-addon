@@ -79,7 +79,7 @@ async function routeRequest(req: IncomingMessage, res: ServerResponse): Promise<
   const method = req.method ?? "GET";
   const url = req.url ?? "/";
   const path = normalizeRoutePath(url);
-  logDebug("ui", "Request received", { method, url });
+  logInfo("ui", "Request received", { method, url, normalizedPath: path });
 
   if (method === "GET" && path === "/") {
     serveStatic("/setup.html", res);
@@ -157,7 +157,10 @@ function serveStatic(urlPath: string, res: ServerResponse): void {
   const safePath = urlPath.startsWith("/") ? urlPath.slice(1) : urlPath;
   const target = resolve(webRoot, safePath);
 
+  logInfo("ui", "serveStatic", { urlPath, webRoot, safePath, target, exists: existsSync(target) });
+
   if (!target.startsWith(webRoot) || !existsSync(target)) {
+    logInfo("ui", "serveStatic 404", { target, startsWithRoot: target.startsWith(webRoot), exists: existsSync(target) });
     sendJson(res, 404, { error: "Datei nicht gefunden." });
     return;
   }
@@ -175,12 +178,21 @@ function getWebRoot(): string {
   // Prefer location relative to compiled runtime file (works in HA add-on containers).
   const runtimeRelativeRoot = resolve(__dirname, "../../web");
 
+  logInfo("ui", "getWebRoot probe", {
+    __dirname,
+    runtimeRelativeRoot,
+    exists: existsSync(runtimeRelativeRoot),
+    cwd: process.cwd(),
+  });
+
   if (existsSync(runtimeRelativeRoot)) {
     return runtimeRelativeRoot;
   }
 
   // Fallback for local execution modes.
-  return resolve(process.cwd(), "web");
+  const cwdRoot = resolve(process.cwd(), "web");
+  logInfo("ui", "getWebRoot fallback", { cwdRoot, exists: existsSync(cwdRoot) });
+  return cwdRoot;
 }
 
 function normalizeRoutePath(rawUrl: string): string {

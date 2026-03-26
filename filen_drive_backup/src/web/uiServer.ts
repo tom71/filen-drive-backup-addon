@@ -29,6 +29,8 @@ const MIME_TYPES: Record<string, string> = {
   ".svg": "image/svg+xml",
 };
 
+const STATIC_FILES = ["/setup.html", "/backups.html", "/app.css", "/setup.js", "/backups.js"];
+
 const DEFAULT_OPTIONS: JsonRecord = {
   source_directory: "/backup",
   working_directory: "/tmp/hassio-filen-backup",
@@ -76,19 +78,20 @@ export async function startUiServer(port: number): Promise<void> {
 async function routeRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
   const method = req.method ?? "GET";
   const url = req.url ?? "/";
-  logDebug("ui", "Request received", { method, url });
+  const path = normalizeRoutePath(url);
+  logInfo("ui", "Request received", { method, url, normalizedPath: path });
 
-  if (method === "GET" && url === "/") {
-    redirect(res, "/setup.html");
+  if (method === "GET" && path === "/") {
+    serveStatic("/setup.html", res);
     return;
   }
 
-  if (method === "GET" && url === "/api/options") {
+  if (method === "GET" && path === "/api/options") {
     sendJson(res, 200, readOptions());
     return;
   }
 
-  if (method === "POST" && url === "/api/options") {
+  if (method === "POST" && path === "/api/options") {
     const payload = await readJsonBody(req);
     const merged = {
       ...DEFAULT_OPTIONS,
@@ -102,7 +105,7 @@ async function routeRequest(req: IncomingMessage, res: ServerResponse): Promise<
     return;
   }
 
-  if (method === "POST" && url === "/api/setup-filen-auth") {
+  if (method === "POST" && path === "/api/setup-filen-auth") {
     const config = loadConfig(getOptionsPath());
 
     if (config.storage.type !== "filen" || !config.storage.filen) {
@@ -120,13 +123,29 @@ async function routeRequest(req: IncomingMessage, res: ServerResponse): Promise<
     return;
   }
 
-  if (method === "GET" && url === "/api/backups") {
+  if (method === "GET" && path === "/api/backups") {
     sendJson(res, 200, await listBackups());
     return;
   }
 
+  if (method === "GET" && path === "/info") {
+    sendJson(res, 200, {
+      name: "Filen Drive Backup",
+      slug: "filen_drive_backup",
+      ui: "./",
+      documentation: "https://github.com/tom71/filen-drive-backup-addon/blob/main/README.md",
+      issue_tracker: "https://github.com/tom71/filen-drive-backup-addon/issues",
+    });
+    return;
+  }
+
+  if (method === "GET" && path === "/documentation") {
+    redirect(res, "https://github.com/tom71/filen-drive-backup-addon/blob/main/README.md");
+    return;
+  }
+
   if (method === "GET") {
-    serveStatic(url, res);
+    serveStatic(path, res);
     return;
   }
 
@@ -134,11 +153,14 @@ async function routeRequest(req: IncomingMessage, res: ServerResponse): Promise<
 }
 
 function serveStatic(urlPath: string, res: ServerResponse): void {
-  const webRoot = resolve(process.cwd(), "web");
+  const webRoot = getWebRoot();
   const safePath = urlPath.startsWith("/") ? urlPath.slice(1) : urlPath;
   const target = resolve(webRoot, safePath);
 
+  logInfo("ui", "serveStatic", { urlPath, webRoot, safePath, target, exists: existsSync(target) });
+
   if (!target.startsWith(webRoot) || !existsSync(target)) {
+    logInfo("ui", "serveStatic 404", { target, startsWithRoot: target.startsWith(webRoot), exists: existsSync(target) });
     sendJson(res, 404, { error: "Datei nicht gefunden." });
     return;
   }
@@ -150,6 +172,118 @@ function serveStatic(urlPath: string, res: ServerResponse): void {
   res.statusCode = 200;
   res.setHeader("Content-Type", mime);
   res.end(body);
+}
+
+function getWebRoot(): string {
+  // Prefer location relative to compiled runtime file (works in HA add-on containers).
+  const runtimeRelativeRoot = resolve(__dirname, "../../web");
+
+  logInfo("ui", "getWebRoot probe", {
+    __dirname,
+    runtimeRelativeRoot,
+    exists: existsSync(runtimeRelativeRoot),
+    cwd: process.cwd(),
+  });
+
+  if (existsSync(runtimeRelativeRoot)) {
+    return runtimeRelativeRoot;
+  }
+
+  // Fallback for local execution modes.
+  const cwdRoot = resolve(process.cwd(), "web");
+  logInfo("ui", "getWebRoot fallback", { cwdRoot, exists: existsSync(cwdRoot) });
+  return cwdRoot;
+}
+
+function normalizeRoutePath(rawUrl: string): string {
+  const pathname = new URL(rawUrl, "http://localhost").pathname;
+  const API_ROUTES = ["/api/options", "/api/setup-filen-auth", "/api/backups"];
+
+  if (pathname === "/") {
+    return "/";
+  }
+
+  for (const apiRoute of API_ROUTES) {
+    const routeIndex = pathname.indexOf(apiRoute);
+    if (routeIndex >= 0) {
+      return pathname.slice(routeIndex);
+    }
+  }
+
+  // Handle HA ingress patterns before generic /api passthrough.
+  if (
+    pathname.startsWith("/hassio_ingress/") ||
+    pathname.startsWith("/api/hassio_ingress/") ||
+    pathname.startsWith("/hassio/ingress/")
+  ) {
+    const appIndex = pathname.indexOf("/app");
+    const setupIndex = pathname.indexOf("/setup");
+    const backupsIndex = pathname.indexOf("/backups");
+    const infoIndex = pathname.indexOf("/info");
+    const docsIndex = pathname.indexOf("/documentation");
+
+    if (appIndex >= 0) {
+      return "/";
+    }
+
+    if (setupIndex >= 0) {
+      return "/";
+    }
+
+    if (backupsIndex >= 0) {
+      return "/backups.html";
+    }
+
+    if (infoIndex >= 0) {
+      return "/info";
+    }
+
+    if (docsIndex >= 0) {
+      return "/documentation";
+    }
+
+    // Ingress base paths like /api/hassio_ingress/<token>/ should render UI root.
+    return "/";
+  }
+
+  if (pathname.startsWith("/api/")) {
+    return pathname;
+  }
+
+  const apiIndex = pathname.indexOf("/api/");
+  if (apiIndex >= 0) {
+    return pathname.slice(apiIndex);
+  }
+
+  for (const filePath of STATIC_FILES) {
+    if (pathname === filePath || pathname.endsWith(filePath)) {
+      return filePath;
+    }
+  }
+
+  if (pathname === "/setup" || pathname.endsWith("/setup")) {
+    return "/setup.html";
+  }
+
+  if (pathname === "/backups" || pathname.endsWith("/backups")) {
+    return "/backups.html";
+  }
+
+  if (pathname === "/info" || pathname.endsWith("/info")) {
+    return "/info";
+  }
+
+  if (pathname === "/documentation" || pathname.endsWith("/documentation")) {
+    return "/documentation";
+  }
+
+  // Handle HA ingress app patterns: /app/[slug] or /app/[instance-id]_[slug]
+  // These should redirect to setup page
+  if (pathname === "/app" || pathname.startsWith("/app/")) {
+    return "/";
+  }
+
+  return pathname;
 }
 
 function getOptionsPath(): string {
