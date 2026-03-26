@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-IMAGE="${IMAGE:-hassio-filen-drive-backup:test}"
+IMAGE="${IMAGE:-filen-drive-backup-addon:test}"
 PORT="${PORT:-8099}"
 CONFIG_FILE="${CONFIG_FILE:-$PWD/.tmp-ui-test/options.json}"
 AUTH_STATE_FILE="${AUTH_STATE_FILE:-$PWD/.tmp-ui-test/filen-auth-state.json}"

@@ -133,14 +133,14 @@ async function routeRequest(req: IncomingMessage, res: ServerResponse): Promise<
       name: "Filen Drive Backup",
       slug: "filen_drive_backup",
       ui: "/setup.html",
-      documentation: "https://github.com/tom71/hassio-filen-drive-backup/blob/main/README.md",
-      issue_tracker: "https://github.com/tom71/hassio-filen-drive-backup/issues",
+      documentation: "https://github.com/tom71/filen-drive-backup-addon/blob/main/README.md",
+      issue_tracker: "https://github.com/tom71/filen-drive-backup-addon/issues",
     });
     return;
   }
 
   if (method === "GET" && path === "/documentation") {
-    redirect(res, "https://github.com/tom71/hassio-filen-drive-backup/blob/main/README.md");
+    redirect(res, "https://github.com/tom71/filen-drive-backup-addon/blob/main/README.md");
     return;
   }
 

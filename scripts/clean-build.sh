@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-IMAGE="${IMAGE:-hassio-filen-drive-backup:test}"
+IMAGE="${IMAGE:-filen-drive-backup-addon:test}"
 NO_CACHE="${NO_CACHE:-true}"
 PULL="${PULL:-true}"
 PRUNE_BUILDER="${PRUNE_BUILDER:-false}"

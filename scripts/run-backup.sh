@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-IMAGE="${IMAGE:-hassio-filen-drive-backup:test}"
+IMAGE="${IMAGE:-filen-drive-backup-addon:test}"
 CONFIG_FILE="${CONFIG_FILE:-$PWD/.tmp-ui-test/options.json}"
 SOURCE_DIR="${SOURCE_DIR:-$PWD}"
 LOCAL_BACKUP_DIR="${LOCAL_BACKUP_DIR:-$PWD/.tmp-ui-test/local-backups}"

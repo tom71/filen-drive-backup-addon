@@ -113,7 +113,7 @@ docker run --rm \
   -p 8099:8099 \
   -e UI_CONFIG_PATH=/data/options.json \
   -v "$PWD/.tmp-ui-test/options.json:/data/options.json" \
-  hassio-filen-drive-backup:test \
+  filen-drive-backup-addon:test \
   node dist/index.js ui 8099
 ```
 
@@ -135,7 +135,7 @@ Wichtige Umgebungsvariablen:
 - `AUTH_STATE_FILE`: Optionaler Pfad zum gespeicherten Filen Auth-State (wird gemountet, falls vorhanden)
 - `SOURCE_DIR`: Quellverzeichnis fuer Backups (Default: aktuelles Projektverzeichnis, wird nach `/backup` gemountet)
 - `LOCAL_BACKUP_DIR`: Lokales Ziel fuer `.enc`-Dateien im Local-Provider-Modus (wird nach `/share/filen-backups` gemountet)
-- `IMAGE`: Docker-Image-Name/Tag (Default: `hassio-filen-drive-backup:test`)
+- `IMAGE`: Docker-Image-Name/Tag (Default: `filen-drive-backup-addon:test`)
 - `LOG_FILE`: Log-Datei fuer `run-ui.sh` (Default: `.tmp-ui-test/ui.log`)
 - `UI_DEBUG`: Schaltet Debug-Logs fuer `run-ui.sh` ein/aus (Default: `true`)
 - `NO_CACHE`: Fuer `clean-build.sh`, standardmaessig `true`
@@ -153,7 +153,7 @@ AUTH_STATE_FILE="$PWD/.tmp-ui-test/filen-auth-state.json" \
 Clean Build Beispiel:
 
 ```bash
-IMAGE="hassio-filen-drive-backup:test" ./scripts/clean-build.sh
+IMAGE="filen-drive-backup-addon:test" ./scripts/clean-build.sh
 ```
 
 UI mit explizitem Logfile:
@@ -175,7 +175,7 @@ Wichtige Punkte:
 Empfohlener Ablauf in Home Assistant:
 
 1. Einstellungen > Add-ons > Add-on Store > Repositories.
-2. Repository URL hinzufuegen: `https://github.com/tom71/hassio-filen-drive-backup`.
+2. Repository URL hinzufuegen: `https://github.com/tom71/filen-drive-backup-addon`.
 3. Add-on `filen_drive_backup` installieren und starten.
 4. Add-on-Weboberflaeche (Ingress) oeffnen und in der Setup-Seite konfigurieren.
 
