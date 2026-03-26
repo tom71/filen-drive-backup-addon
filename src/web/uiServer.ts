@@ -153,16 +153,6 @@ async function routeRequest(req: IncomingMessage, res: ServerResponse): Promise<
 }
 
 function serveStatic(urlPath: string, res: ServerResponse): void {
-  if (urlPath === "/app" || urlPath.startsWith("/app/")) {
-    redirect(res, "/setup.html");
-    return;
-  }
-
-  if (urlPath.startsWith("/hassio_ingress/") || urlPath.startsWith("/api/hassio_ingress/")) {
-    redirect(res, "/setup.html");
-    return;
-  }
-
   const webRoot = resolve(process.cwd(), "web");
   const safePath = urlPath.startsWith("/") ? urlPath.slice(1) : urlPath;
   const target = resolve(webRoot, safePath);
@@ -217,6 +207,17 @@ function normalizeRoutePath(rawUrl: string): string {
 
   if (pathname === "/documentation" || pathname.endsWith("/documentation")) {
     return "/documentation";
+  }
+
+  // Handle HA ingress app patterns: /app/[slug] or /app/[instance-id]_[slug]
+  // These should redirect to setup page
+  if (pathname === "/app" || pathname.startsWith("/app/")) {
+    return "/setup.html";
+  }
+
+  // Handle hassio_ingress patterns
+  if (pathname.startsWith("/hassio_ingress/") || pathname.startsWith("/api/hassio_ingress/")) {
+    return "/setup.html";
   }
 
   return pathname;
