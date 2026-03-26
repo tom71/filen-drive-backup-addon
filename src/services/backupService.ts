@@ -34,7 +34,7 @@ export class BackupService {
     const encryptedPath = join(this.config.workingDirectory, `${baseName}.tar.gz.enc`);
 
     try {
-      this.encryptionService.encryptFile(
+      await this.encryptionService.encryptFile(
         archivePath,
         encryptedPath,
         this.config.encryption.passphrase,
@@ -79,7 +79,7 @@ export class BackupService {
     const encryptedPath = join(this.config.workingDirectory, encryptedName);
 
     try {
-      this.encryptionService.encryptFile(sourcePath, encryptedPath, this.config.encryption.passphrase);
+      await this.encryptionService.encryptFile(sourcePath, encryptedPath, this.config.encryption.passphrase);
 
       const storageProvider = this.createStorageProvider();
       const uploadResult = await storageProvider.uploadFile(encryptedPath, encryptedName, {

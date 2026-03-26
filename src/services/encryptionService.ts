@@ -1,31 +1,57 @@
 import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from "node:crypto";
-import { readFileSync, writeFileSync } from "node:fs";
+import { createReadStream, createWriteStream } from "node:fs";
+import { open } from "node:fs/promises";
+import { pipeline } from "node:stream/promises";
 
 const MAGIC = Buffer.from("HAFB1");
 const SALT_LENGTH = 16;
 const IV_LENGTH = 12;
 const AUTH_TAG_LENGTH = 16;
+const HEADER_LENGTH = MAGIC.length + SALT_LENGTH + IV_LENGTH + AUTH_TAG_LENGTH;
 
 export class EncryptionService {
-  encryptFile(inputPath: string, outputPath: string, passphrase: string): string {
-    const plaintext = readFileSync(inputPath);
+  async encryptFile(inputPath: string, outputPath: string, passphrase: string): Promise<string> {
     const salt = randomBytes(SALT_LENGTH);
     const iv = randomBytes(IV_LENGTH);
     const key = scryptSync(passphrase, salt, 32);
     const cipher = createCipheriv("aes-256-gcm", key, iv);
+    const header = Buffer.concat([MAGIC, salt, iv, Buffer.alloc(AUTH_TAG_LENGTH)]);
+    const file = await open(outputPath, "w");
 
-    const ciphertext = Buffer.concat([cipher.update(plaintext), cipher.final()]);
-    const authTag = cipher.getAuthTag();
-    const payload = Buffer.concat([MAGIC, salt, iv, authTag, ciphertext]);
+    try {
+      await file.write(header, 0, header.length, 0);
 
-    writeFileSync(outputPath, payload);
+      await pipeline(
+        createReadStream(inputPath),
+        cipher,
+        createWriteStream(outputPath, { flags: "r+", start: HEADER_LENGTH }),
+      );
+
+      const authTag = cipher.getAuthTag();
+      const authTagOffset = MAGIC.length + SALT_LENGTH + IV_LENGTH;
+      await file.write(authTag, 0, AUTH_TAG_LENGTH, authTagOffset);
+    } finally {
+      await file.close();
+    }
 
     return outputPath;
   }
 
-  decryptFile(inputPath: string, outputPath: string, passphrase: string): string {
-    const payload = readFileSync(inputPath);
-    const magic = payload.subarray(0, MAGIC.length);
+  async decryptFile(inputPath: string, outputPath: string, passphrase: string): Promise<string> {
+    const file = await open(inputPath, "r");
+    const header = Buffer.alloc(HEADER_LENGTH);
+
+    try {
+      const { bytesRead } = await file.read(header, 0, HEADER_LENGTH, 0);
+
+      if (bytesRead < HEADER_LENGTH) {
+        throw new Error("Ungueltiges Dateiformat fuer verschluesseltes Backup.");
+      }
+    } finally {
+      await file.close();
+    }
+
+    const magic = header.subarray(0, MAGIC.length);
 
     if (!magic.equals(MAGIC)) {
       throw new Error("Ungueltiges Dateiformat fuer verschluesseltes Backup.");
@@ -36,17 +62,19 @@ export class EncryptionService {
     const tagStart = ivStart + IV_LENGTH;
     const dataStart = tagStart + AUTH_TAG_LENGTH;
 
-    const salt = payload.subarray(saltStart, ivStart);
-    const iv = payload.subarray(ivStart, tagStart);
-    const authTag = payload.subarray(tagStart, dataStart);
-    const ciphertext = payload.subarray(dataStart);
+    const salt = header.subarray(saltStart, ivStart);
+    const iv = header.subarray(ivStart, tagStart);
+    const authTag = header.subarray(tagStart, dataStart);
     const key = scryptSync(passphrase, salt, 32);
     const decipher = createDecipheriv("aes-256-gcm", key, iv);
 
     decipher.setAuthTag(authTag);
 
-    const plaintext = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
-    writeFileSync(outputPath, plaintext);
+    await pipeline(
+      createReadStream(inputPath, { start: HEADER_LENGTH }),
+      decipher,
+      createWriteStream(outputPath),
+    );
 
     return outputPath;
   }

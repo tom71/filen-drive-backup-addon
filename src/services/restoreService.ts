@@ -30,7 +30,7 @@ export class RestoreService {
 
     try {
       await storageProvider.downloadFile(backupLocation, downloadedPath);
-      this.encryptionService.decryptFile(downloadedPath, decryptedPath, this.config.encryption.passphrase);
+      await this.encryptionService.decryptFile(downloadedPath, decryptedPath, this.config.encryption.passphrase);
       await this.archiveService.extractTarGz(decryptedPath, effectiveRestoreDirectory);
 
       return {
