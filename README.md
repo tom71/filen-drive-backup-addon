@@ -110,11 +110,11 @@ mkdir -p .tmp-ui-test
 cp config/config.example.json .tmp-ui-test/options.json
 
 docker run --rm \
-	-p 8099:8099 \
-	-e UI_CONFIG_PATH=/data/options.json \
-	-v "$PWD/.tmp-ui-test/options.json:/data/options.json" \
-	hassio-filen-drive-backup:test \
-	node dist/index.js ui 8099
+  -p 8099:8099 \
+  -e UI_CONFIG_PATH=/data/options.json \
+  -v "$PWD/.tmp-ui-test/options.json:/data/options.json" \
+  hassio-filen-drive-backup:test \
+  node dist/index.js ui 8099
 ```
 
 Wichtig: `POST /api/options` benoetigt Schreibzugriff auf `UI_CONFIG_PATH`. Bei einem Read-only-Mount tritt sonst `EROFS: read-only file system` auf.
@@ -161,6 +161,27 @@ UI mit explizitem Logfile:
 ```bash
 LOG_FILE="$PWD/.tmp-ui-test/ui.log" UI_DEBUG=true ./scripts/run-ui.sh
 ```
+
+## Home Assistant Add-on Nutzung
+
+Der Container startet im Add-on-Betrieb standardmaessig im langlebigen Modus und stellt die UI fuer Ingress bereit.
+
+Wichtige Punkte:
+
+- `ingress: true` und `ingress_port: 8099` sind in `config.yaml` gesetzt.
+- Start erfolgt ueber `run.sh` mit `START_MODE=addon`.
+- Konfiguration wird aus `/data/options.json` gelesen.
+
+Empfohlener Ablauf in Home Assistant:
+
+1. Einstellungen > Add-ons > Add-on Store > Repositories.
+2. Repository URL hinzufuegen: `https://github.com/tom71/hassio-filen-drive-backup`.
+3. Add-on `filen_drive_backup` installieren und starten.
+4. Add-on-Weboberflaeche (Ingress) oeffnen und in der Setup-Seite konfigurieren.
+
+Hinweis:
+
+- Fuer Filen-Listing ohne wiederkehrende 2FA-Prompts sollte ein gueltiger `filen_auth_state_path` genutzt werden.
 
 ## Build
 

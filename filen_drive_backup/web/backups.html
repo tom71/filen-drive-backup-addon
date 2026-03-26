@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Backup Übersicht</title>
+    <link rel="stylesheet" href="/app.css" />
+  </head>
+  <body>
+    <header class="hero hero-backups">
+      <div>
+        <p class="kicker">Filen Backup Add-on</p>
+        <h1>Backup Übersicht</h1>
+        <p>Zeigt verfügbare Backups aus dem konfigurierten Storage an.</p>
+      </div>
+      <nav class="tabs">
+        <a class="tab" href="/setup.html">Setup</a>
+        <a class="tab active" href="/backups.html">Backups</a>
+      </nav>
+    </header>
+
+    <main class="grid">
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Backup Statistics</h2>
+        </div>
+        <div id="overview" class="stats"></div>
+      </section>
+
+      <section class="panel warning-panel">
+        <h2>Status</h2>
+        <p id="status-text" class="hint">Lade Status ...</p>
+      </section>
+
+      <section class="panel span-2">
+        <div class="panel-head">
+          <h2>Backups</h2>
+          <button id="reload" class="btn ghost">Neu laden</button>
+        </div>
+        <div id="meta" class="meta"></div>
+        <div id="backup-list" class="list"></div>
+      </section>
+    </main>
+
+    <script src="/backups.js"></script>
+  </body>
+</html>
