@@ -128,6 +128,22 @@ async function routeRequest(req: IncomingMessage, res: ServerResponse): Promise<
     return;
   }
 
+  if (method === "GET" && path === "/info") {
+    sendJson(res, 200, {
+      name: "Filen Drive Backup",
+      slug: "filen_drive_backup",
+      ui: "/setup.html",
+      documentation: "https://github.com/tom71/hassio-filen-drive-backup/blob/main/README.md",
+      issue_tracker: "https://github.com/tom71/hassio-filen-drive-backup/issues",
+    });
+    return;
+  }
+
+  if (method === "GET" && path === "/documentation") {
+    redirect(res, "https://github.com/tom71/hassio-filen-drive-backup/blob/main/README.md");
+    return;
+  }
+
   if (method === "GET") {
     serveStatic(path, res);
     return;
@@ -193,6 +209,14 @@ function normalizeRoutePath(rawUrl: string): string {
 
   if (pathname === "/backups" || pathname.endsWith("/backups")) {
     return "/backups.html";
+  }
+
+  if (pathname === "/info" || pathname.endsWith("/info")) {
+    return "/info";
+  }
+
+  if (pathname === "/documentation" || pathname.endsWith("/documentation")) {
+    return "/documentation";
   }
 
   return pathname;
