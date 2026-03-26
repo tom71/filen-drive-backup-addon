@@ -32,6 +32,7 @@ function supervisorRequest<T>(method: string, path: string, body?: unknown): Pro
         method,
         headers: {
           Authorization: `Bearer ${token}`,
+          "X-Supervisor-Token": token,
           "Content-Type": "application/json",
           ...(bodyStr !== undefined ? { "Content-Length": Buffer.byteLength(bodyStr) } : {}),
         },
@@ -42,6 +43,18 @@ function supervisorRequest<T>(method: string, path: string, body?: unknown): Pro
           raw += chunk.toString();
         });
         res.on("end", () => {
+          if ((res.statusCode ?? 500) >= 400) {
+            const message = raw.trim() || `Supervisor API Fehler (HTTP ${res.statusCode ?? "?"})`;
+
+            if (res.statusCode === 403) {
+              reject(new Error(`Supervisor verweigert den Zugriff (403). Dem Add-on fehlen wahrscheinlich hassio_api/hassio_role-Rechte. Antwort: ${message}`));
+              return;
+            }
+
+            reject(new Error(message));
+            return;
+          }
+
           try {
             const parsed = JSON.parse(raw) as SupervisorResponse<T>;
 
