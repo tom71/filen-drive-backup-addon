@@ -1,21 +1,23 @@
 # Home Assistant Filen Backup Add-on
 
-Dieses Repository enthaelt den Startpunkt fuer ein Home-Assistant-Add-on, das lokale Backups als komprimiertes Archiv erstellt, mit AES-256-GCM verschluesselt und anschliessend ueber einen austauschbaren Storage-Provider ablegt.
+Dieses Repository enthaelt den Startpunkt fuer ein Home-Assistant-Add-on, das Home-Assistant-Backups als Archiv verarbeitet, mit AES-256-GCM verschluesselt und nach Filen hochlaedt.
 
 ## Aktueller Stand
 
 - TypeScript-Projektgeruest mit klar getrennten Services.
-- Backup-Pipeline fuer Archivierung und Verschluesselung.
-- Lokaler Storage-Provider fuer einen sofort testbaren MVP.
-- Filen.io-Anbindung ueber das offizielle TypeScript-SDK mit persistentem Auth-State.
+- Backup-Pipeline fuer Archivierung und AES-256-GCM-Verschluesselung.
+- Streaming-Verschluesselung fuer grosse Backups (kein 2-GiB-Buffer-Limit).
+- Filen-only Storage-Provider ueber das offizielle TypeScript-SDK mit persistentem Auth-State.
 - Web-UI mit Setup-Seite und Backup-Uebersicht.
 - Home-Assistant-Add-on-Metadaten in `config.yaml`.
 - Dockerfile fuer den spaeteren Container-Build.
 
-## Noch offen
+## Next Steps
 
-- Geplante Backups und Aufbewahrungsregeln.
-- UI- oder Assistenten-Integration in Home Assistant.
+- Automatische Zeitplanung fuer Backups (`days_between_backups`, `backup_time_of_day`).
+- Aufbewahrungsregeln in Filen (`max_backups_in_filen_drive`, `generational_days`, `generational_weeks`).
+- Erweiterte UI fuer Backup-Policy inkl. Validierung und Erklaertexten.
+- Optional: Push ueber konkreten Home-Assistant-Notify-Service (z. B. Mobile App) zusaetzlich zur Persistent Notification.
 
 ## Konfiguration
 
@@ -29,8 +31,17 @@ Wichtige Felder:
 - `working_directory`: Temporaeres Arbeitsverzeichnis.
 - `restore_directory`: Zielverzeichnis fuer Restore-Vorgaenge.
 - `encryption_passphrase`: Passphrase fuer AES-256-GCM.
-- `storage_provider`: `local` oder `filen`.
-- `local_storage_directory`: Zielverzeichnis fuer den lokalen Provider.
+- `storage_provider`: aktuell nur `filen`.
+- `max_backups_in_filen_drive`: Zielwert fuer spaetere Aufbewahrungslogik in Filen.
+- `days_between_backups`: Intervall fuer spaetere automatische Backup-Laeufe.
+- `backup_time_of_day`: Tageszeit fuer spaetere automatische Backup-Laeufe (`HH:MM`).
+- `delete_after_upload`: Loescht das frische HA-Backup nach erfolgreichem Upload via Supervisor API.
+- `backup_name`: Namensvorlage fuer HA-Backup-Erstellung (`{type}`, `{version_ha}`).
+- `generational_days`: geplanter Tages-Teil der Aufbewahrungsstrategie.
+- `generational_weeks`: geplanter Wochen-Teil der Aufbewahrungsstrategie.
+- `send_error_reports`: erzeugt bei Backup-Fehlern eine Home-Assistant Persistent Notification.
+- `exclude_folders`: Liste fuer partielle HA-Backups (CSV).
+- `exclude_addons`: Liste fuer partielle HA-Backups (CSV).
 - `filen_email`: Filen-Login fuer den SDK-basierten Upload.
 - `filen_password`: Filen-Passwort fuer den SDK-basierten Upload.
 - `filen_2fa_code`: Optionaler 2FA-Code, ansonsten `XXXXXX`.
@@ -45,7 +56,7 @@ Eine Beispielkonfiguration liegt in `config/config.example.json`.
 
 1. Quelldaten werden per `tar.gz` archiviert.
 2. Das Archiv wird mit AES-256-GCM verschluesselt.
-3. Der konfigurierte Storage-Provider legt die verschluesselte Datei ab.
+3. Filen speichert die verschluesselte Datei im konfigurierten Zielordner.
 4. Temporaere Dateien werden wieder entfernt.
 
 Beim Filen-Provider erfolgt zusaetzlich:
@@ -57,9 +68,9 @@ Beim Filen-Provider erfolgt zusaetzlich:
 
 ## Restore
 
-Der Restore nutzt denselben Storage-Provider wie der Backup-Upload:
+Der Restore nutzt denselben Filen-Provider wie der Backup-Upload:
 
-1. Die verschluesselte Datei wird aus dem lokalen Ziel oder aus Filen geladen.
+1. Die verschluesselte Datei wird aus Filen geladen.
 2. Die Datei wird lokal entschluesselt.
 3. Das tar.gz-Archiv wird in das konfigurierte Restore-Ziel entpackt.
 
@@ -68,7 +79,6 @@ CLI-Beispiele:
 ```bash
 npm run build
 node dist/index.js backup
-node dist/index.js restore /share/filen-backups/home-assistant-backup-2026-03-24T19-00-00-000Z.tar.gz.enc /restore
 node dist/index.js restore filen:/Home Assistant Backups/home-assistant-backup-2026-03-24T19-00-00-000Z.tar.gz.enc /restore
 ```
 
@@ -92,7 +102,7 @@ Wenn der Zustand ungueltig wird (z. B. Passwortwechsel, Token-Rotation), den Set
 Das Projekt enthaelt zwei UI-Seiten:
 
 1. Setup-Seite unter `/setup.html` mit allen Konfigurationsfeldern und Button fuer `setup-filen-auth`.
-2. Backup-Uebersicht unter `/backups.html` mit Listing der lokalen `.enc`-Dateien.
+2. Backup-Uebersicht unter `/backups.html` mit Listing der Filen-Backups.
 
 UI starten:
 
@@ -134,7 +144,6 @@ Wichtige Umgebungsvariablen:
 - `CONFIG_FILE`: Pfad zur `options.json` (Default: `.tmp-ui-test/options.json`)
 - `AUTH_STATE_FILE`: Optionaler Pfad zum gespeicherten Filen Auth-State (wird gemountet, falls vorhanden)
 - `SOURCE_DIR`: Quellverzeichnis fuer Backups (Default: aktuelles Projektverzeichnis, wird nach `/backup` gemountet)
-- `LOCAL_BACKUP_DIR`: Lokales Ziel fuer `.enc`-Dateien im Local-Provider-Modus (wird nach `/share/filen-backups` gemountet)
 - `IMAGE`: Docker-Image-Name/Tag (Default: `filen-drive-backup-addon:test`)
 - `LOG_FILE`: Log-Datei fuer `run-ui.sh` (Default: `.tmp-ui-test/ui.log`)
 - `UI_DEBUG`: Schaltet Debug-Logs fuer `run-ui.sh` ein/aus (Default: `true`)
