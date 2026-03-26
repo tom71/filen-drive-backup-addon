@@ -153,7 +153,7 @@ async function routeRequest(req: IncomingMessage, res: ServerResponse): Promise<
 }
 
 function serveStatic(urlPath: string, res: ServerResponse): void {
-  const webRoot = resolve(process.cwd(), "web");
+  const webRoot = getWebRoot();
   const safePath = urlPath.startsWith("/") ? urlPath.slice(1) : urlPath;
   const target = resolve(webRoot, safePath);
 
@@ -169,6 +169,18 @@ function serveStatic(urlPath: string, res: ServerResponse): void {
   res.statusCode = 200;
   res.setHeader("Content-Type", mime);
   res.end(body);
+}
+
+function getWebRoot(): string {
+  // Prefer location relative to compiled runtime file (works in HA add-on containers).
+  const runtimeRelativeRoot = resolve(__dirname, "../../web");
+
+  if (existsSync(runtimeRelativeRoot)) {
+    return runtimeRelativeRoot;
+  }
+
+  // Fallback for local execution modes.
+  return resolve(process.cwd(), "web");
 }
 
 function normalizeRoutePath(rawUrl: string): string {
