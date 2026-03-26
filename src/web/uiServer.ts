@@ -5,6 +5,7 @@ import { dirname, extname, join, resolve } from "node:path";
 import { loadConfig } from "../config";
 import { BackupService } from "../services/backupService";
 import { FilenStorageProvider } from "../services/filenStorageProvider";
+import { createHaFullBackup, isSupervisorAvailable } from "../services/supervisorService";
 import { logDebug, logError, logInfo, logWarn } from "../utils/logger";
 
 type JsonRecord = Record<string, unknown>;
@@ -152,7 +153,20 @@ async function routeRequest(req: IncomingMessage, res: ServerResponse): Promise<
       try {
         const config = loadConfig(getOptionsPath());
         const service = new BackupService(config);
-        const result = await service.runBackup();
+        let result;
+
+        if (isSupervisorAvailable()) {
+          logInfo("ui", "Supervisor verfügbar – erstelle HA Full Backup via Supervisor API");
+          const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+          const backupName = `Filen-Backup-${timestamp}`;
+          const tarPath = await createHaFullBackup(backupName);
+          const baseName = `ha-backup-${timestamp}.tar`;
+          result = await service.runBackupFromFile(tarPath, baseName);
+        } else {
+          logInfo("ui", "Kein Supervisor – archiviere source_directory");
+          result = await service.runBackup();
+        }
+
         backupNowState = {
           status: "done",
           startedAt,

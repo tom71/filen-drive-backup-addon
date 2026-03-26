@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync, rmSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 
 import { AppConfig, BackupResult } from "../types/config";
 import { ArchiveService } from "./archiveService";
@@ -75,5 +75,38 @@ export class BackupService {
     }
 
     return new LocalStorageProvider(this.config.storage.local);
+  }
+
+  async runBackupFromFile(sourcePath: string, baseName: string): Promise<BackupResult> {
+    if (!existsSync(sourcePath)) {
+      throw new Error(`Quelldatei nicht gefunden: ${sourcePath}`);
+    }
+
+    mkdirSync(this.config.workingDirectory, { recursive: true });
+
+    const encryptedName = `${baseName}.enc`;
+    const encryptedPath = join(this.config.workingDirectory, encryptedName);
+
+    try {
+      this.encryptionService.encryptFile(sourcePath, encryptedPath, this.config.encryption.passphrase);
+
+      const storageProvider = this.createStorageProvider();
+      const uploadResult = await storageProvider.uploadFile(encryptedPath, encryptedName, {
+        createdAt: new Date().toISOString(),
+        sourceDirectory: dirname(sourcePath),
+      });
+
+      return {
+        archiveName: encryptedName,
+        localArchivePath: sourcePath,
+        encryptedArchivePath: encryptedPath,
+        uploadedTo: uploadResult.location,
+        sizeBytes: statSync(encryptedPath).size,
+        createdAt: new Date().toISOString(),
+      };
+    } finally {
+      rmSync(encryptedPath, { force: true });
+      // Quelldatei (HA .tar) wird nicht gelöscht – bleibt unter /backup erhalten.
+    }
   }
 }
