@@ -1,5 +1,5 @@
 {
-  "name": "hassio-filen-drive-backup",
+  "name": "filen-drive-backup-addon",
   "version": "0.1.0",
   "private": true,
   "description": "Encrypted Home Assistant backup prototype with pluggable storage providers.",
