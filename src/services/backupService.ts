@@ -68,14 +68,14 @@ export class BackupService {
     return new FilenStorageProvider(this.config.storage.filen);
   }
 
-  async runBackupFromFile(sourcePath: string, baseName: string): Promise<BackupResult> {
+  async runBackupFromFile(sourcePath: string, baseName: string, encryptedNameOverride?: string): Promise<BackupResult> {
     if (!existsSync(sourcePath)) {
       throw new Error(`Quelldatei nicht gefunden: ${sourcePath}`);
     }
 
     mkdirSync(this.config.workingDirectory, { recursive: true });
 
-    const encryptedName = `${baseName}.enc`;
+    const encryptedName = sanitizeEncryptedName(encryptedNameOverride, `${baseName}.enc`);
     const encryptedPath = join(this.config.workingDirectory, encryptedName);
 
     try {
@@ -100,4 +100,17 @@ export class BackupService {
       // Quelldatei (HA .tar) wird nicht gelöscht – bleibt unter /backup erhalten.
     }
   }
+}
+
+function sanitizeEncryptedName(candidate: string | undefined, fallback: string): string {
+  if (!candidate || candidate.trim().length === 0) {
+    return fallback;
+  }
+
+  const sanitized = candidate
+    .replaceAll(/[\\/]/g, "-")
+    .replaceAll(/[\u0000-\u001F]/g, "")
+    .trim();
+
+  return sanitized.length > 0 ? sanitized : fallback;
 }

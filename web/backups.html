@@ -32,6 +32,13 @@
         <p id="status-text" class="hint">Lade Status ...</p>
       </section>
 
+      <section class="panel">
+        <h2>Scheduler</h2>
+        <p class="hint"><strong>Modus:</strong> <span id="scheduler-mode">Lade ...</span></p>
+        <p class="hint"><strong>Naechster Lauf:</strong> <span id="scheduler-next">-</span></p>
+        <p class="hint"><strong>Letzter Lauf:</strong> <span id="scheduler-last">-</span></p>
+      </section>
+
       <section class="panel span-2">
         <div class="panel-head">
           <h2>Manuelles Backup</h2>
@@ -49,6 +56,31 @@
         </div>
         <div id="meta" class="meta"></div>
         <div id="backup-list" class="list"></div>
+      </section>
+
+      <section class="panel span-2">
+        <div class="panel-head">
+          <h2>Restore</h2>
+        </div>
+
+        <div class="restore-grid">
+          <label>
+            Backup
+            <select id="restore-target"></select>
+          </label>
+          <label>
+            Restore-Ziel (optional)
+            <input id="restore-directory" type="text" placeholder="/restore" />
+          </label>
+        </div>
+
+        <div class="actions">
+          <button id="restore-preview" class="btn ghost">Inhalt anzeigen</button>
+          <button id="restore-run" class="btn primary">Restore starten</button>
+        </div>
+
+        <pre id="restore-preview-output" class="status">Waehle ein Backup fuer die Vorschau.</pre>
+        <div id="restore-status" class="backup-now-status hidden"></div>
       </section>
     </main>
 

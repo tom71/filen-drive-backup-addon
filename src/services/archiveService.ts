@@ -31,4 +31,17 @@ export class ArchiveService {
 
     return outputDirectory;
   }
+
+  async listTarGzEntries(archivePath: string): Promise<string[]> {
+    if (!existsSync(archivePath)) {
+      throw new Error(`Archiv existiert nicht: ${archivePath}`);
+    }
+
+    const { stdout } = await execFileAsync("tar", ["-tzf", archivePath]);
+
+    return stdout
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
+  }
 }

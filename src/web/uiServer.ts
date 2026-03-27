@@ -5,6 +5,7 @@ import { dirname, extname, join, resolve } from "node:path";
 import { loadConfig } from "../config";
 import { BackupService } from "../services/backupService";
 import { FilenStorageProvider } from "../services/filenStorageProvider";
+import { RestoreService } from "../services/restoreService";
 import { createHaBackup, deleteHaBackup, isSupervisorAvailable, sendHaFailureNotification } from "../services/supervisorService";
 import { logDebug, logError, logInfo, logWarn } from "../utils/logger";
 
@@ -17,6 +18,36 @@ type BackupNowState =
   | { status: "error"; startedAt: string; finishedAt: string; error: string };
 
 let backupNowState: BackupNowState = { status: "idle" };
+
+type RestoreNowState =
+  | { status: "idle" }
+  | { status: "running"; startedAt: string; backupLocation: string; restoreDirectory?: string }
+  | { status: "done"; startedAt: string; finishedAt: string; backupLocation: string; restoreDirectory?: string; result: JsonRecord }
+  | { status: "error"; startedAt: string; finishedAt: string; backupLocation: string; restoreDirectory?: string; error: string };
+
+let restoreNowState: RestoreNowState = { status: "idle" };
+
+type SchedulerState = {
+  enabled: boolean;
+  intervalDays?: number;
+  timeOfDay?: string;
+  nextRunAt: string | null;
+  lastRunStartedAt: string | null;
+  lastRunFinishedAt: string | null;
+  lastRunStatus: "idle" | "done" | "error" | "running";
+  lastError: string | null;
+};
+
+let schedulerState: SchedulerState = {
+  enabled: false,
+  nextRunAt: null,
+  lastRunStartedAt: null,
+  lastRunFinishedAt: null,
+  lastRunStatus: "idle",
+  lastError: null,
+};
+
+let schedulerTimer: ReturnType<typeof setInterval> | null = null;
 
 type BackupListItem = {
   name: string;
@@ -72,6 +103,8 @@ export async function startUiServer(port: number): Promise<void> {
     uiLogPath: process.env.UI_LOG_PATH ?? "",
   });
 
+  initializeScheduler();
+
   const server = createServer(async (req, res) => {
     try {
       await routeRequest(req, res);
@@ -120,6 +153,7 @@ async function routeRequest(req: IncomingMessage, res: ServerResponse): Promise<
 
     validateOptions(merged);
     writeOptions(merged);
+    initializeScheduler();
 
     sendJson(res, 200, { message: "Konfiguration gespeichert." });
     return;
@@ -148,85 +182,99 @@ async function routeRequest(req: IncomingMessage, res: ServerResponse): Promise<
     return;
   }
 
+  if (method === "GET" && path === "/api/scheduler-status") {
+    sendJson(res, 200, getSchedulerStatusPayload());
+    return;
+  }
+
   if (method === "POST" && path === "/api/backup-now") {
-    if (backupNowState.status === "running") {
+    const triggerResult = startBackupRun("manual");
+
+    if (!triggerResult.accepted) {
       sendJson(res, 409, { error: "Backup läuft bereits." });
       return;
     }
 
+    sendJson(res, 202, { message: "Backup gestartet.", startedAt: triggerResult.startedAt });
+    return;
+  }
+
+  if (method === "POST" && path === "/api/restore-preview") {
+    const payload = await readJsonBody(req);
+    const backupLocation = String(payload.backupLocation ?? "").trim();
+
+    if (!backupLocation) {
+      sendJson(res, 400, { error: "backupLocation fehlt." });
+      return;
+    }
+
+    const maxEntries = toPositiveInteger(payload.maxEntries, 120);
+    const config = loadConfig(getOptionsPath());
+    const restoreService = new RestoreService(config);
+    const preview = await restoreService.previewRestore(backupLocation, maxEntries);
+
+    sendJson(res, 200, preview as unknown as JsonRecord);
+    return;
+  }
+
+  if (method === "POST" && path === "/api/restore-now") {
+    if (restoreNowState.status === "running") {
+      sendJson(res, 409, { error: "Restore läuft bereits." });
+      return;
+    }
+
+    const payload = await readJsonBody(req);
+    const backupLocation = String(payload.backupLocation ?? "").trim();
+    const restoreDirectory = String(payload.restoreDirectory ?? "").trim() || undefined;
+
+    if (!backupLocation) {
+      sendJson(res, 400, { error: "backupLocation fehlt." });
+      return;
+    }
+
     const startedAt = new Date().toISOString();
-    backupNowState = { status: "running", startedAt };
-    logInfo("ui", "Manuelles Backup gestartet");
+    restoreNowState = { status: "running", startedAt, backupLocation, restoreDirectory };
 
-    // Fire-and-forget – Client poolt /api/backup-status
-    (async () => {
-      const rawOptions = readOptions();
-      const shouldNotifyOnFailure = readBooleanOption(rawOptions.send_error_reports, true);
-
+    void (async () => {
       try {
         const config = loadConfig(getOptionsPath());
-        const service = new BackupService(config);
-        let result;
+        const restoreService = new RestoreService(config);
+        const result = await restoreService.runRestore(backupLocation, restoreDirectory);
 
-        if (isSupervisorAvailable()) {
-          logInfo("ui", "Supervisor verfügbar – erstelle HA Backup via Supervisor API", {
-            backupNameTemplate: config.backupPolicy.backupNameTemplate,
-            excludeFolders: config.backupPolicy.excludeFolders,
-            excludeAddons: config.backupPolicy.excludeAddons,
-          });
-          const createdBackup = await createHaBackup({
-            backupNameTemplate: config.backupPolicy.backupNameTemplate,
-            excludeFolders: config.backupPolicy.excludeFolders,
-            excludeAddons: config.backupPolicy.excludeAddons,
-          });
-          result = await service.runBackupFromFile(createdBackup.tarPath, `${createdBackup.slug}.tar`);
-
-          if (config.backupPolicy.deleteAfterUpload) {
-            await deleteHaBackup(createdBackup.slug);
-          }
-        } else {
-          logInfo("ui", "Kein Supervisor – archiviere source_directory");
-          result = await service.runBackup();
-        }
-
-        backupNowState = {
+        restoreNowState = {
           status: "done",
           startedAt,
           finishedAt: new Date().toISOString(),
+          backupLocation,
+          restoreDirectory,
           result: result as unknown as JsonRecord,
         };
-        logInfo("ui", "Manuelles Backup abgeschlossen", result);
+        logInfo("ui", "Restore abgeschlossen", { backupLocation, restoreDirectory });
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : String(err);
-        backupNowState = {
+        restoreNowState = {
           status: "error",
           startedAt,
           finishedAt: new Date().toISOString(),
+          backupLocation,
+          restoreDirectory,
           error: message,
         };
-        logError("ui", "Manuelles Backup fehlgeschlagen", { error: backupNowState.error });
-
-        if (shouldNotifyOnFailure && isSupervisorAvailable()) {
-          try {
-            await sendHaFailureNotification(
-              "Filen Drive Backup fehlgeschlagen",
-              `Das manuelle Backup konnte nicht abgeschlossen werden.\n\nFehler: ${message}`,
-            );
-          } catch (notifyError: unknown) {
-            logError("ui", "HA Fehlerbenachrichtigung fehlgeschlagen", {
-              error: notifyError instanceof Error ? notifyError.message : String(notifyError),
-            });
-          }
-        }
+        logError("ui", "Restore fehlgeschlagen", { backupLocation, restoreDirectory, error: message });
       }
     })();
 
-    sendJson(res, 202, { message: "Backup gestartet.", startedAt });
+    sendJson(res, 202, { message: "Restore gestartet.", startedAt });
     return;
   }
 
   if (method === "GET" && path === "/api/backup-status") {
     sendJson(res, 200, backupNowState);
+    return;
+  }
+
+  if (method === "GET" && path === "/api/restore-status") {
+    sendJson(res, 200, restoreNowState as unknown as JsonRecord);
     return;
   }
 
@@ -299,7 +347,17 @@ function getWebRoot(): string {
 
 function normalizeRoutePath(rawUrl: string): string {
   const pathname = new URL(rawUrl, "http://localhost").pathname;
-  const API_ROUTES = ["/api/options", "/api/setup-filen-auth", "/api/backups", "/api/backup-now", "/api/backup-status"];
+  const API_ROUTES = [
+    "/api/options",
+    "/api/setup-filen-auth",
+    "/api/backups",
+    "/api/scheduler-status",
+    "/api/backup-now",
+    "/api/backup-status",
+    "/api/restore-preview",
+    "/api/restore-now",
+    "/api/restore-status",
+  ];
 
   if (pathname === "/") {
     return "/";
@@ -541,4 +599,201 @@ function redirect(res: ServerResponse, location: string): void {
   res.statusCode = 302;
   res.setHeader("Location", location);
   res.end();
+}
+
+function initializeScheduler(): void {
+  const options = readOptions();
+  const intervalDays = toPositiveInteger(options.days_between_backups);
+  const timeOfDay = String(options.backup_time_of_day ?? "").trim();
+  const validTime = /^([01]\d|2[0-3]):[0-5]\d$/.test(timeOfDay) ? timeOfDay : undefined;
+
+  schedulerState.enabled = Boolean(intervalDays && validTime);
+  schedulerState.intervalDays = intervalDays;
+  schedulerState.timeOfDay = validTime;
+  schedulerState.nextRunAt = schedulerState.enabled ? computeNextRunIso(new Date(), intervalDays!, validTime!) : null;
+
+  if (schedulerTimer) {
+    clearInterval(schedulerTimer);
+    schedulerTimer = null;
+  }
+
+  if (!schedulerState.enabled) {
+    logInfo("ui", "Scheduler deaktiviert", { intervalDays, timeOfDay });
+    return;
+  }
+
+  schedulerTimer = setInterval(() => {
+    void runScheduledBackupIfDue();
+  }, 30_000);
+
+  logInfo("ui", "Scheduler aktiviert", {
+    intervalDays: schedulerState.intervalDays,
+    timeOfDay: schedulerState.timeOfDay,
+    nextRunAt: schedulerState.nextRunAt,
+  });
+}
+
+async function runScheduledBackupIfDue(): Promise<void> {
+  if (!schedulerState.enabled || !schedulerState.nextRunAt) {
+    return;
+  }
+
+  if (backupNowState.status === "running") {
+    return;
+  }
+
+  const dueAt = new Date(schedulerState.nextRunAt).getTime();
+  if (!Number.isFinite(dueAt) || Date.now() < dueAt) {
+    return;
+  }
+
+  const triggerResult = startBackupRun("scheduled");
+  if (!triggerResult.accepted && schedulerState.intervalDays && schedulerState.timeOfDay) {
+    schedulerState.nextRunAt = computeNextRunIso(new Date(), schedulerState.intervalDays, schedulerState.timeOfDay);
+  }
+}
+
+function startBackupRun(trigger: "manual" | "scheduled"): { accepted: boolean; startedAt?: string } {
+  if (backupNowState.status === "running") {
+    return { accepted: false };
+  }
+
+  const startedAt = new Date().toISOString();
+  backupNowState = { status: "running", startedAt };
+  schedulerState.lastRunStartedAt = startedAt;
+  schedulerState.lastRunStatus = "running";
+  schedulerState.lastError = null;
+
+  logInfo("ui", `${trigger === "scheduled" ? "Geplantes" : "Manuelles"} Backup gestartet`, {
+    startedAt,
+  });
+
+  void (async () => {
+    const rawOptions = readOptions();
+    const shouldNotifyOnFailure = readBooleanOption(rawOptions.send_error_reports, true);
+
+    try {
+      const config = loadConfig(getOptionsPath());
+      const service = new BackupService(config);
+      let result;
+
+      if (isSupervisorAvailable()) {
+        logInfo("ui", "Supervisor verfügbar – erstelle HA Backup via Supervisor API", {
+          backupNameTemplate: config.backupPolicy.backupNameTemplate,
+          excludeFolders: config.backupPolicy.excludeFolders,
+          excludeAddons: config.backupPolicy.excludeAddons,
+        });
+        const createdBackup = await createHaBackup({
+          backupNameTemplate: config.backupPolicy.backupNameTemplate,
+          excludeFolders: config.backupPolicy.excludeFolders,
+          excludeAddons: config.backupPolicy.excludeAddons,
+        });
+        const uploadName = `${createdBackup.name} - ${createdBackup.slug}.tar.enc`;
+        result = await service.runBackupFromFile(createdBackup.tarPath, `${createdBackup.slug}.tar`, uploadName);
+
+        if (config.backupPolicy.deleteAfterUpload) {
+          await deleteHaBackup(createdBackup.slug);
+        }
+      } else {
+        logInfo("ui", "Kein Supervisor – archiviere source_directory");
+        result = await service.runBackup();
+      }
+
+      const finishedAt = new Date().toISOString();
+      backupNowState = {
+        status: "done",
+        startedAt,
+        finishedAt,
+        result: result as unknown as JsonRecord,
+      };
+
+      schedulerState.lastRunFinishedAt = finishedAt;
+      schedulerState.lastRunStatus = "done";
+      schedulerState.lastError = null;
+      if (schedulerState.enabled && schedulerState.intervalDays && schedulerState.timeOfDay) {
+        schedulerState.nextRunAt = computeNextRunIso(new Date(), schedulerState.intervalDays, schedulerState.timeOfDay);
+      }
+
+      logInfo("ui", `${trigger === "scheduled" ? "Geplantes" : "Manuelles"} Backup abgeschlossen`, result);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      const finishedAt = new Date().toISOString();
+      backupNowState = {
+        status: "error",
+        startedAt,
+        finishedAt,
+        error: message,
+      };
+
+      schedulerState.lastRunFinishedAt = finishedAt;
+      schedulerState.lastRunStatus = "error";
+      schedulerState.lastError = message;
+      if (schedulerState.enabled && schedulerState.intervalDays && schedulerState.timeOfDay) {
+        schedulerState.nextRunAt = computeNextRunIso(new Date(), schedulerState.intervalDays, schedulerState.timeOfDay);
+      }
+
+      logError("ui", `${trigger === "scheduled" ? "Geplantes" : "Manuelles"} Backup fehlgeschlagen`, {
+        error: message,
+      });
+
+      if (shouldNotifyOnFailure && isSupervisorAvailable()) {
+        try {
+          await sendHaFailureNotification(
+            "Filen Drive Backup fehlgeschlagen",
+            `Das ${trigger === "scheduled" ? "geplante" : "manuelle"} Backup konnte nicht abgeschlossen werden.\n\nFehler: ${message}`,
+          );
+        } catch (notifyError: unknown) {
+          logError("ui", "HA Fehlerbenachrichtigung fehlgeschlagen", {
+            error: notifyError instanceof Error ? notifyError.message : String(notifyError),
+          });
+        }
+      }
+    }
+  })();
+
+  return { accepted: true, startedAt };
+}
+
+function computeNextRunIso(now: Date, intervalDays: number, timeOfDay: string): string {
+  const [hourPart, minutePart] = timeOfDay.split(":");
+  const hour = Number.parseInt(hourPart, 10);
+  const minute = Number.parseInt(minutePart, 10);
+
+  const candidate = new Date(now);
+  candidate.setSeconds(0, 0);
+  candidate.setHours(hour, minute, 0, 0);
+
+  while (candidate.getTime() <= now.getTime()) {
+    candidate.setDate(candidate.getDate() + intervalDays);
+  }
+
+  return candidate.toISOString();
+}
+
+function getSchedulerStatusPayload(): JsonRecord {
+  return {
+    enabled: schedulerState.enabled,
+    intervalDays: schedulerState.intervalDays,
+    timeOfDay: schedulerState.timeOfDay,
+    nextRunAt: schedulerState.nextRunAt,
+    lastRunStartedAt: schedulerState.lastRunStartedAt,
+    lastRunFinishedAt: schedulerState.lastRunFinishedAt,
+    lastRunStatus: schedulerState.lastRunStatus,
+    lastError: schedulerState.lastError,
+  };
+}
+
+function toPositiveInteger(input: unknown, fallback?: number): number | undefined {
+  if (typeof input === "number" && Number.isFinite(input) && input >= 1) {
+    return Math.floor(input);
+  }
+
+  if (typeof input === "string" && input.trim().length > 0) {
+    const parsed = Number.parseInt(input.trim(), 10);
+    if (Number.isFinite(parsed) && parsed >= 1) {
+      return parsed;
+    }
+  }
+
+  return fallback;
 }

@@ -323,16 +323,16 @@ function readString(input: Record<string, unknown>, keys: string[]): string {
   return "";
 }
 
-function readNumber(input: Record<string, unknown>, keys: string[]): number {
+function readNumber(input: Record<string, unknown>, keys: string[]): number | undefined {
   for (const key of keys) {
     const value = input[key];
 
-    if (typeof value === "number" && Number.isFinite(value)) {
+    if (typeof value === "number" && Number.isFinite(value) && value >= 0) {
       return value;
     }
   }
 
-  return -1;
+  return undefined;
 }
 
 function normalizeTargetFolder(targetFolder?: string): string {

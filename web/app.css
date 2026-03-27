@@ -321,3 +321,15 @@ select {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.restore-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+@media (max-width: 980px) {
+  .restore-grid {
+    grid-template-columns: 1fr;
+  }
+}

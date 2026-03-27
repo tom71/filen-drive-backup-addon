@@ -5,13 +5,25 @@ const overviewEl = document.getElementById("overview");
 const statusTextEl = document.getElementById("status-text");
 const backupNowBtn = document.getElementById("backup-now");
 const backupNowStatusEl = document.getElementById("backup-now-status");
+const schedulerModeEl = document.getElementById("scheduler-mode");
+const schedulerNextEl = document.getElementById("scheduler-next");
+const schedulerLastEl = document.getElementById("scheduler-last");
+const restoreTargetEl = document.getElementById("restore-target");
+const restoreDirectoryEl = document.getElementById("restore-directory");
+const restorePreviewBtn = document.getElementById("restore-preview");
+const restoreRunBtn = document.getElementById("restore-run");
+const restorePreviewOutputEl = document.getElementById("restore-preview-output");
+const restoreStatusEl = document.getElementById("restore-status");
 
 let backupNowPollInterval = null;
+let schedulerPollInterval = null;
+let restorePollInterval = null;
+let backupItems = [];
 
 backupNowBtn.addEventListener("click", async () => {
   backupNowBtn.disabled = true;
   backupNowStatusEl.className = "backup-now-status running";
-  backupNowStatusEl.textContent = "⏳ Backup wird gestartet ...";
+  backupNowStatusEl.textContent = "Backup wird gestartet ...";
 
   try {
     const res = await fetch("api/backup-now", { method: "POST" });
@@ -19,64 +31,100 @@ backupNowBtn.addEventListener("click", async () => {
 
     if (!res.ok) {
       if (res.status === 409) {
-        // Backup läuft bereits – Polling starten statt Fehler anzeigen
-        backupNowStatusEl.textContent = "⏳ Backup läuft ...";
+        backupNowStatusEl.textContent = "Backup laeuft bereits ...";
         startBackupNowPolling();
         return;
       }
+
       backupNowStatusEl.className = "backup-now-status error";
-      backupNowStatusEl.textContent = "✗ " + (data.error || "Fehler beim Starten.");
+      backupNowStatusEl.textContent = "Fehler: " + (data.error || "Backup konnte nicht gestartet werden.");
       backupNowBtn.disabled = false;
       return;
     }
 
-    backupNowStatusEl.textContent = "⏳ Backup läuft ...";
+    backupNowStatusEl.textContent = "Backup laeuft ...";
     startBackupNowPolling();
-  } catch (err) {
+  } catch (error) {
     backupNowStatusEl.className = "backup-now-status error";
-    backupNowStatusEl.textContent = "✗ Netzwerkfehler: " + err.message;
+    backupNowStatusEl.textContent = "Netzwerkfehler: " + error.message;
     backupNowBtn.disabled = false;
   }
 });
 
-function startBackupNowPolling() {
-  if (backupNowPollInterval) {
-    clearInterval(backupNowPollInterval);
+restorePreviewBtn.addEventListener("click", async () => {
+  const backupLocation = getSelectedRestoreLocation();
+
+  if (!backupLocation) {
+    restorePreviewOutputEl.textContent = "Bitte zuerst ein Backup auswaehlen.";
+    return;
   }
 
-  backupNowPollInterval = setInterval(async () => {
-    try {
-      const res = await fetch("api/backup-status");
-      const data = await res.json();
+  restorePreviewBtn.disabled = true;
+  restorePreviewOutputEl.textContent = "Lade Inhaltsvorschau ...";
 
-      if (data.status === "running") {
-        const elapsed = Math.round((Date.now() - new Date(data.startedAt).getTime()) / 1000);
-        backupNowStatusEl.className = "backup-now-status running";
-        backupNowStatusEl.textContent = `⏳ Backup läuft ... (${elapsed}s)`;
+  try {
+    const res = await fetch("api/restore-preview", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ backupLocation, maxEntries: 120 }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      restorePreviewOutputEl.textContent = data.error || "Vorschau konnte nicht geladen werden.";
+      return;
+    }
+
+    restorePreviewOutputEl.textContent = renderRestorePreview(data);
+  } catch (error) {
+    restorePreviewOutputEl.textContent = "Netzwerkfehler: " + error.message;
+  } finally {
+    restorePreviewBtn.disabled = false;
+  }
+});
+
+restoreRunBtn.addEventListener("click", async () => {
+  const backupLocation = getSelectedRestoreLocation();
+
+  if (!backupLocation) {
+    setRestoreStatus("error", "Bitte zuerst ein Backup auswaehlen.");
+    return;
+  }
+
+  restoreRunBtn.disabled = true;
+  restorePreviewBtn.disabled = true;
+  setRestoreStatus("running", "Restore wird gestartet ...");
+
+  try {
+    const restoreDirectory = String(restoreDirectoryEl.value || "").trim();
+    const res = await fetch("api/restore-now", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ backupLocation, restoreDirectory }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      if (res.status === 409) {
+        setRestoreStatus("running", "Restore laeuft bereits ...");
+        startRestorePolling();
         return;
       }
 
-      clearInterval(backupNowPollInterval);
-      backupNowPollInterval = null;
-      backupNowBtn.disabled = false;
-
-      if (data.status === "done") {
-        const r = data.result || {};
-        backupNowStatusEl.className = "backup-now-status done";
-        backupNowStatusEl.textContent =
-          `✓ Backup abgeschlossen: ${r.archiveName || "-"}` +
-          (r.uploadedTo ? `\nGespeichert: ${r.uploadedTo}` : "") +
-          (r.sizeBytes ? `\nGröße: ${formatSize(r.sizeBytes)}` : "");
-        loadBackups().catch(() => {});
-      } else if (data.status === "error") {
-        backupNowStatusEl.className = "backup-now-status error";
-        backupNowStatusEl.textContent = "✗ Backup fehlgeschlagen: " + (data.error || "Unbekannter Fehler");
-      }
-    } catch {
-      // Polling läuft weiter
+      setRestoreStatus("error", data.error || "Restore konnte nicht gestartet werden.");
+      restoreRunBtn.disabled = false;
+      restorePreviewBtn.disabled = false;
+      return;
     }
-  }, 2000);
-}
+
+    setRestoreStatus("running", "Restore laeuft ...");
+    startRestorePolling();
+  } catch (error) {
+    setRestoreStatus("error", "Netzwerkfehler: " + error.message);
+    restoreRunBtn.disabled = false;
+    restorePreviewBtn.disabled = false;
+  }
+});
 
 reloadButton.addEventListener("click", () => {
   loadBackups().catch((error) => {
@@ -87,22 +135,37 @@ reloadButton.addEventListener("click", () => {
 loadBackups().catch((error) => {
   renderError(error.message);
 });
+loadSchedulerStatus().catch(() => {});
+startSchedulerPolling();
+bootstrapRunningStates().catch(() => {});
 
-// Beim Seitenload prüfen ob ein Backup bereits läuft
-(async () => {
+async function bootstrapRunningStates() {
   try {
-    const res = await fetch("api/backup-status");
-    const data = await res.json();
-    if (data.status === "running") {
+    const backupRes = await fetch("api/backup-status");
+    const backupStatus = await backupRes.json();
+    if (backupStatus.status === "running") {
       backupNowBtn.disabled = true;
       backupNowStatusEl.className = "backup-now-status running";
-      backupNowStatusEl.textContent = "⏳ Backup läuft ...";
+      backupNowStatusEl.textContent = "Backup laeuft ...";
       startBackupNowPolling();
     }
   } catch {
-    // Ignorieren
+    // ignore
   }
-})();
+
+  try {
+    const restoreRes = await fetch("api/restore-status");
+    const restoreStatus = await restoreRes.json();
+    if (restoreStatus.status === "running") {
+      restoreRunBtn.disabled = true;
+      restorePreviewBtn.disabled = true;
+      setRestoreStatus("running", "Restore laeuft ...");
+      startRestorePolling();
+    }
+  } catch {
+    // ignore
+  }
+}
 
 async function loadBackups() {
   listEl.innerHTML = "";
@@ -119,6 +182,7 @@ async function loadBackups() {
   }
 
   const items = Array.isArray(payload.items) ? payload.items : [];
+  backupItems = items;
   const note = payload.note ? String(payload.note) : "";
   const provider = String(payload.provider || "-");
   const baseDirectory = payload.baseDirectory ? String(payload.baseDirectory) : "";
@@ -129,6 +193,7 @@ async function loadBackups() {
   metaEl.textContent = `Provider: ${provider}${baseDir}`;
   renderOverview(provider, overview, storage, baseDirectory);
   setStatus(note, storage);
+  renderRestoreTargets(items);
 
   if (note) {
     const info = document.createElement("p");
@@ -168,6 +233,190 @@ async function loadBackups() {
   }
 }
 
+function renderRestoreTargets(items) {
+  const selected = getSelectedRestoreLocation();
+  restoreTargetEl.innerHTML = "";
+
+  if (!Array.isArray(items) || items.length === 0) {
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = "Keine Backups verfuegbar";
+    restoreTargetEl.appendChild(option);
+    restoreTargetEl.disabled = true;
+    restorePreviewBtn.disabled = true;
+    restoreRunBtn.disabled = true;
+    return;
+  }
+
+  restoreTargetEl.disabled = false;
+  restorePreviewBtn.disabled = false;
+  restoreRunBtn.disabled = false;
+
+  for (const item of items) {
+    const location = item.path ? `filen:${item.path}` : item.name;
+    const option = document.createElement("option");
+    option.value = location;
+    option.textContent = `${item.name} (${new Date(item.modifiedAt).toLocaleString("de-DE")})`;
+    restoreTargetEl.appendChild(option);
+  }
+
+  if (selected) {
+    const stillExists = items.some((item) => (item.path ? `filen:${item.path}` : item.name) === selected);
+    if (stillExists) {
+      restoreTargetEl.value = selected;
+    }
+  }
+}
+
+function getSelectedRestoreLocation() {
+  return String(restoreTargetEl.value || "").trim();
+}
+
+async function loadSchedulerStatus() {
+  const response = await fetch("api/scheduler-status");
+  const payload = await response.json();
+
+  if (!response.ok) {
+    schedulerModeEl.textContent = "Fehler";
+    schedulerNextEl.textContent = payload.error || "Status nicht verfuegbar";
+    schedulerLastEl.textContent = "-";
+    return;
+  }
+
+  const enabled = Boolean(payload.enabled);
+  const intervalDays = Number(payload.intervalDays || 0);
+  const timeOfDay = String(payload.timeOfDay || "");
+  const nextRunAt = payload.nextRunAt ? new Date(payload.nextRunAt) : null;
+  const lastRunStartedAt = payload.lastRunStartedAt ? new Date(payload.lastRunStartedAt) : null;
+  const lastRunFinishedAt = payload.lastRunFinishedAt ? new Date(payload.lastRunFinishedAt) : null;
+  const lastRunStatus = String(payload.lastRunStatus || "idle");
+  const lastError = String(payload.lastError || "");
+
+  schedulerModeEl.textContent = enabled
+    ? `Aktiv (alle ${intervalDays} Tag(e) um ${timeOfDay})`
+    : "Deaktiviert (days_between_backups/backup_time_of_day setzen)";
+  schedulerNextEl.textContent = nextRunAt ? nextRunAt.toLocaleString("de-DE") : "-";
+
+  if (!lastRunStartedAt) {
+    schedulerLastEl.textContent = "Noch kein Lauf";
+    return;
+  }
+
+  const finished = lastRunFinishedAt ? `, beendet ${lastRunFinishedAt.toLocaleString("de-DE")}` : "";
+  const error = lastRunStatus === "error" && lastError ? `, Fehler: ${lastError}` : "";
+  schedulerLastEl.textContent = `${lastRunStatus} seit ${lastRunStartedAt.toLocaleString("de-DE")}${finished}${error}`;
+}
+
+function startSchedulerPolling() {
+  if (schedulerPollInterval) {
+    clearInterval(schedulerPollInterval);
+  }
+
+  schedulerPollInterval = setInterval(() => {
+    loadSchedulerStatus().catch(() => {});
+  }, 30000);
+}
+
+function startBackupNowPolling() {
+  if (backupNowPollInterval) {
+    clearInterval(backupNowPollInterval);
+  }
+
+  backupNowPollInterval = setInterval(async () => {
+    try {
+      const res = await fetch("api/backup-status");
+      const data = await res.json();
+
+      if (data.status === "running") {
+        const elapsed = Math.round((Date.now() - new Date(data.startedAt).getTime()) / 1000);
+        backupNowStatusEl.className = "backup-now-status running";
+        backupNowStatusEl.textContent = `Backup laeuft ... (${elapsed}s)`;
+        return;
+      }
+
+      clearInterval(backupNowPollInterval);
+      backupNowPollInterval = null;
+      backupNowBtn.disabled = false;
+
+      if (data.status === "done") {
+        const r = data.result || {};
+        backupNowStatusEl.className = "backup-now-status done";
+        backupNowStatusEl.textContent =
+          `Backup abgeschlossen: ${r.archiveName || "-"}` +
+          (r.uploadedTo ? `\nGespeichert: ${r.uploadedTo}` : "") +
+          (r.sizeBytes ? `\nGroesse: ${formatSize(r.sizeBytes)}` : "");
+        loadBackups().catch(() => {});
+        loadSchedulerStatus().catch(() => {});
+      } else if (data.status === "error") {
+        backupNowStatusEl.className = "backup-now-status error";
+        backupNowStatusEl.textContent = "Backup fehlgeschlagen: " + (data.error || "Unbekannter Fehler");
+        loadSchedulerStatus().catch(() => {});
+      }
+    } catch {
+      // ignore while polling
+    }
+  }, 2000);
+}
+
+function startRestorePolling() {
+  if (restorePollInterval) {
+    clearInterval(restorePollInterval);
+  }
+
+  restorePollInterval = setInterval(async () => {
+    try {
+      const res = await fetch("api/restore-status");
+      const data = await res.json();
+
+      if (data.status === "running") {
+        const elapsed = Math.round((Date.now() - new Date(data.startedAt).getTime()) / 1000);
+        setRestoreStatus("running", `Restore laeuft ... (${elapsed}s)`);
+        return;
+      }
+
+      clearInterval(restorePollInterval);
+      restorePollInterval = null;
+      restoreRunBtn.disabled = false;
+      restorePreviewBtn.disabled = false;
+
+      if (data.status === "done") {
+        const result = data.result || {};
+        setRestoreStatus(
+          "done",
+          `Restore abgeschlossen\nQuelle: ${data.backupLocation || "-"}\nZiel: ${result.restoredTo || data.restoreDirectory || "-"}`,
+        );
+      } else if (data.status === "error") {
+        setRestoreStatus("error", "Restore fehlgeschlagen: " + (data.error || "Unbekannter Fehler"));
+      }
+    } catch {
+      // ignore while polling
+    }
+  }, 2000);
+}
+
+function setRestoreStatus(kind, message) {
+  restoreStatusEl.className = `backup-now-status ${kind}`;
+  restoreStatusEl.textContent = message;
+}
+
+function renderRestorePreview(payload) {
+  const backupLocation = String(payload.backupLocation || "-");
+  const totalEntries = Number(payload.totalEntries || 0);
+  const topLevelEntries = Array.isArray(payload.topLevelEntries) ? payload.topLevelEntries : [];
+  const entriesPreview = Array.isArray(payload.entriesPreview) ? payload.entriesPreview : [];
+
+  return [
+    `Backup: ${backupLocation}`,
+    `Eintraege gesamt: ${totalEntries}`,
+    "",
+    "Top-Level Inhalte:",
+    ...(topLevelEntries.length > 0 ? topLevelEntries.map((entry) => `- ${entry}`) : ["- (keine)"]),
+    "",
+    "Vorschau der Archiv-Eintraege:",
+    ...(entriesPreview.length > 0 ? entriesPreview.map((entry) => `- ${entry}`) : ["- (keine)"]),
+  ].join("\n");
+}
+
 function renderOverview(provider, overview, storage, baseDirectory) {
   const totalCount = Number(overview?.totalCount || 0);
   const totalSizeBytes = Number(overview?.totalSizeBytes || 0);
@@ -193,12 +442,12 @@ function renderOverview(provider, overview, storage, baseDirectory) {
     },
   ];
 
-  if (storage && Number.isFinite(Number(storage.availableBytes))) {
+  if (storage && isKnownByteValue(storage.availableBytes)) {
     cards.push({
       label: "Verfuegbar",
-      value: formatSize(Number(storage.availableBytes || 0)),
-      detail: Number.isFinite(Number(storage.capacityBytes))
-        ? `Kapazitaet ${formatSize(Number(storage.capacityBytes || 0))}`
+      value: formatSize(Number(storage.availableBytes)),
+      detail: isKnownByteValue(storage.capacityBytes)
+        ? `Kapazitaet ${formatSize(Number(storage.capacityBytes))}`
         : "",
     });
   }
@@ -236,7 +485,7 @@ function setStatus(note, storage) {
     return;
   }
 
-  if (!storage || !Number.isFinite(Number(storage.availableBytes)) || !Number.isFinite(Number(storage.capacityBytes))) {
+  if (!storage || !isKnownByteValue(storage.availableBytes) || !isKnownByteValue(storage.capacityBytes)) {
     statusTextEl.className = "good";
     statusTextEl.textContent = "Synchronisierung aktiv. Keine kritischen Hinweise.";
     return;
@@ -254,6 +503,11 @@ function setStatus(note, storage) {
 
   statusTextEl.className = "good";
   statusTextEl.textContent = `Speicher in Ordnung (${formatSize(available)} verfuegbar).`;
+}
+
+function isKnownByteValue(value) {
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 0;
 }
 
 function formatSize(sizeBytes) {
