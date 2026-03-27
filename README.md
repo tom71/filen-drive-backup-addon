@@ -171,6 +171,33 @@ UI mit explizitem Logfile:
 LOG_FILE="$PWD/.tmp-ui-test/ui.log" UI_DEBUG=true ./scripts/run-ui.sh
 ```
 
+### VS Code Devtools Container
+
+Fuer schnelle UI- und Build-Tests ohne Home Assistant ist ein Devcontainer enthalten.
+
+Vorgehen in VS Code:
+
+```bash
+Dev Containers: Reopen in Container
+```
+
+Im Container werden beim Erstellen automatisch `npm install` und die lokale Devtools-Konfiguration vorbereitet.
+
+UI im Devcontainer starten:
+
+```bash
+bash scripts/devtools-start-ui.sh
+```
+
+Dabei wird automatisch eine lokale Test-Konfiguration unter `.tmp-ui-test/options.json` erzeugt mit:
+
+- `source_directory` auf das Workspace-Verzeichnis
+- `working_directory` unter `.tmp-ui-test/workdir`
+- `restore_directory` unter `.tmp-ui-test/restore`
+- `filen_auth_state_path` unter `.tmp-ui-test/filen-auth-state.json`
+
+Die UI ist danach im Devcontainer ueber Port `8099` erreichbar.
+
 ## Home Assistant Add-on Nutzung
 
 Der Container startet im Add-on-Betrieb standardmaessig im langlebigen Modus und stellt die UI fuer Ingress bereit.
