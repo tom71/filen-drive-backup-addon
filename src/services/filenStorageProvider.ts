@@ -356,7 +356,7 @@ function readNumber(input: Record<string, unknown>, keys: string[]): number | un
   return undefined;
 }
 
-function normalizeTargetFolder(targetFolder?: string): string {
+export function normalizeTargetFolder(targetFolder?: string): string {
   if (!targetFolder || targetFolder.trim().length === 0) {
     return "/Home Assistant Backups";
   }
