@@ -20,14 +20,20 @@ export class ArchiveService {
     return archivePath;
   }
 
-  async extractTarGz(archivePath: string, outputDirectory: string): Promise<string> {
+  async extractTarGz(archivePath: string, outputDirectory: string, selectedEntries?: string[]): Promise<string> {
     if (!existsSync(archivePath)) {
       throw new Error(`Archiv existiert nicht: ${archivePath}`);
     }
 
     mkdirSync(outputDirectory, { recursive: true });
 
-    await execFileAsync("tar", ["-xzf", archivePath, "-C", outputDirectory]);
+    const args = ["-xzf", archivePath, "-C", outputDirectory];
+
+    if (Array.isArray(selectedEntries) && selectedEntries.length > 0) {
+      args.push(...selectedEntries);
+    }
+
+    await execFileAsync("tar", args);
 
     return outputDirectory;
   }

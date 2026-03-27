@@ -21,9 +21,9 @@ let backupNowState: BackupNowState = { status: "idle" };
 
 type RestoreNowState =
   | { status: "idle" }
-  | { status: "running"; startedAt: string; backupLocation: string; restoreDirectory?: string }
-  | { status: "done"; startedAt: string; finishedAt: string; backupLocation: string; restoreDirectory?: string; result: JsonRecord }
-  | { status: "error"; startedAt: string; finishedAt: string; backupLocation: string; restoreDirectory?: string; error: string };
+  | { status: "running"; startedAt: string; backupLocation: string; restoreDirectory?: string; selectedEntries?: string[] }
+  | { status: "done"; startedAt: string; finishedAt: string; backupLocation: string; restoreDirectory?: string; selectedEntries?: string[]; result: JsonRecord }
+  | { status: "error"; startedAt: string; finishedAt: string; backupLocation: string; restoreDirectory?: string; selectedEntries?: string[]; error: string };
 
 let restoreNowState: RestoreNowState = { status: "idle" };
 
@@ -36,6 +36,16 @@ type SchedulerState = {
   lastRunFinishedAt: string | null;
   lastRunStatus: "idle" | "done" | "error" | "running";
   lastError: string | null;
+};
+
+type PersistedSchedulerState = {
+  intervalDays?: number;
+  timeOfDay?: string;
+  nextRunAt?: string | null;
+  lastRunStartedAt?: string | null;
+  lastRunFinishedAt?: string | null;
+  lastRunStatus?: "idle" | "done" | "error" | "running";
+  lastError?: string | null;
 };
 
 let schedulerState: SchedulerState = {
@@ -226,6 +236,7 @@ async function routeRequest(req: IncomingMessage, res: ServerResponse): Promise<
     const payload = await readJsonBody(req);
     const backupLocation = String(payload.backupLocation ?? "").trim();
     const restoreDirectory = String(payload.restoreDirectory ?? "").trim() || undefined;
+    const selectedEntries = parseSelectedEntries(payload.selectedEntries);
 
     if (!backupLocation) {
       sendJson(res, 400, { error: "backupLocation fehlt." });
@@ -233,13 +244,13 @@ async function routeRequest(req: IncomingMessage, res: ServerResponse): Promise<
     }
 
     const startedAt = new Date().toISOString();
-    restoreNowState = { status: "running", startedAt, backupLocation, restoreDirectory };
+    restoreNowState = { status: "running", startedAt, backupLocation, restoreDirectory, selectedEntries };
 
     void (async () => {
       try {
         const config = loadConfig(getOptionsPath());
         const restoreService = new RestoreService(config);
-        const result = await restoreService.runRestore(backupLocation, restoreDirectory);
+        const result = await restoreService.runRestore(backupLocation, restoreDirectory, selectedEntries);
 
         restoreNowState = {
           status: "done",
@@ -247,9 +258,10 @@ async function routeRequest(req: IncomingMessage, res: ServerResponse): Promise<
           finishedAt: new Date().toISOString(),
           backupLocation,
           restoreDirectory,
+          selectedEntries,
           result: result as unknown as JsonRecord,
         };
-        logInfo("ui", "Restore abgeschlossen", { backupLocation, restoreDirectory });
+        logInfo("ui", "Restore abgeschlossen", { backupLocation, restoreDirectory, selectedEntries });
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : String(err);
         restoreNowState = {
@@ -258,9 +270,10 @@ async function routeRequest(req: IncomingMessage, res: ServerResponse): Promise<
           finishedAt: new Date().toISOString(),
           backupLocation,
           restoreDirectory,
+          selectedEntries,
           error: message,
         };
-        logError("ui", "Restore fehlgeschlagen", { backupLocation, restoreDirectory, error: message });
+        logError("ui", "Restore fehlgeschlagen", { backupLocation, restoreDirectory, selectedEntries, error: message });
       }
     })();
 
@@ -606,11 +619,16 @@ function initializeScheduler(): void {
   const intervalDays = toPositiveInteger(options.days_between_backups);
   const timeOfDay = String(options.backup_time_of_day ?? "").trim();
   const validTime = /^([01]\d|2[0-3]):[0-5]\d$/.test(timeOfDay) ? timeOfDay : undefined;
+  const persisted = readPersistedSchedulerState();
 
   schedulerState.enabled = Boolean(intervalDays && validTime);
   schedulerState.intervalDays = intervalDays;
   schedulerState.timeOfDay = validTime;
-  schedulerState.nextRunAt = schedulerState.enabled ? computeNextRunIso(new Date(), intervalDays!, validTime!) : null;
+  schedulerState.lastRunStartedAt = persisted.lastRunStartedAt ?? null;
+  schedulerState.lastRunFinishedAt = persisted.lastRunFinishedAt ?? null;
+  schedulerState.lastRunStatus = persisted.lastRunStatus ?? "idle";
+  schedulerState.lastError = persisted.lastError ?? null;
+  schedulerState.nextRunAt = resolvePersistedNextRunAt(persisted, schedulerState.enabled, intervalDays, validTime);
 
   if (schedulerTimer) {
     clearInterval(schedulerTimer);
@@ -618,6 +636,7 @@ function initializeScheduler(): void {
   }
 
   if (!schedulerState.enabled) {
+    persistSchedulerState();
     logInfo("ui", "Scheduler deaktiviert", { intervalDays, timeOfDay });
     return;
   }
@@ -631,6 +650,8 @@ function initializeScheduler(): void {
     timeOfDay: schedulerState.timeOfDay,
     nextRunAt: schedulerState.nextRunAt,
   });
+
+  persistSchedulerState();
 }
 
 async function runScheduledBackupIfDue(): Promise<void> {
@@ -661,8 +682,10 @@ function startBackupRun(trigger: "manual" | "scheduled"): { accepted: boolean; s
   const startedAt = new Date().toISOString();
   backupNowState = { status: "running", startedAt };
   schedulerState.lastRunStartedAt = startedAt;
+  schedulerState.lastRunFinishedAt = null;
   schedulerState.lastRunStatus = "running";
   schedulerState.lastError = null;
+  persistSchedulerState();
 
   logInfo("ui", `${trigger === "scheduled" ? "Geplantes" : "Manuelles"} Backup gestartet`, {
     startedAt,
@@ -713,6 +736,7 @@ function startBackupRun(trigger: "manual" | "scheduled"): { accepted: boolean; s
       if (schedulerState.enabled && schedulerState.intervalDays && schedulerState.timeOfDay) {
         schedulerState.nextRunAt = computeNextRunIso(new Date(), schedulerState.intervalDays, schedulerState.timeOfDay);
       }
+      persistSchedulerState();
 
       logInfo("ui", `${trigger === "scheduled" ? "Geplantes" : "Manuelles"} Backup abgeschlossen`, result);
     } catch (err: unknown) {
@@ -731,6 +755,7 @@ function startBackupRun(trigger: "manual" | "scheduled"): { accepted: boolean; s
       if (schedulerState.enabled && schedulerState.intervalDays && schedulerState.timeOfDay) {
         schedulerState.nextRunAt = computeNextRunIso(new Date(), schedulerState.intervalDays, schedulerState.timeOfDay);
       }
+      persistSchedulerState();
 
       logError("ui", `${trigger === "scheduled" ? "Geplantes" : "Manuelles"} Backup fehlgeschlagen`, {
         error: message,
@@ -781,6 +806,84 @@ function getSchedulerStatusPayload(): JsonRecord {
     lastRunStatus: schedulerState.lastRunStatus,
     lastError: schedulerState.lastError,
   };
+}
+
+function getSchedulerStatePath(): string {
+  return resolve(dirname(getOptionsPath()), "scheduler-state.json");
+}
+
+function readPersistedSchedulerState(): PersistedSchedulerState {
+  const path = getSchedulerStatePath();
+
+  if (!existsSync(path)) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(readFileSync(path, "utf8")) as PersistedSchedulerState;
+  } catch {
+    return {};
+  }
+}
+
+function persistSchedulerState(): void {
+  const path = getSchedulerStatePath();
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(
+    path,
+    `${JSON.stringify(
+      {
+        intervalDays: schedulerState.intervalDays,
+        timeOfDay: schedulerState.timeOfDay,
+        nextRunAt: schedulerState.nextRunAt,
+        lastRunStartedAt: schedulerState.lastRunStartedAt,
+        lastRunFinishedAt: schedulerState.lastRunFinishedAt,
+        lastRunStatus: schedulerState.lastRunStatus,
+        lastError: schedulerState.lastError,
+      },
+      null,
+      2,
+    )}\n`,
+    "utf8",
+  );
+}
+
+function resolvePersistedNextRunAt(
+  persisted: PersistedSchedulerState,
+  enabled: boolean,
+  intervalDays?: number,
+  timeOfDay?: string,
+): string | null {
+  if (!enabled || !intervalDays || !timeOfDay) {
+    return null;
+  }
+
+  if (
+    persisted.intervalDays === intervalDays &&
+    persisted.timeOfDay === timeOfDay &&
+    typeof persisted.nextRunAt === "string" &&
+    persisted.nextRunAt.length > 0
+  ) {
+    const persistedTime = new Date(persisted.nextRunAt).getTime();
+    if (Number.isFinite(persistedTime) && persistedTime > Date.now()) {
+      return persisted.nextRunAt;
+    }
+  }
+
+  return computeNextRunIso(new Date(), intervalDays, timeOfDay);
+}
+
+function parseSelectedEntries(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  const entries = value
+    .filter((entry): entry is string => typeof entry === "string")
+    .map((entry) => entry.trim())
+    .filter((entry, index, array) => entry.length > 0 && array.indexOf(entry) === index);
+
+  return entries.length > 0 ? entries : undefined;
 }
 
 function toPositiveInteger(input: unknown, fallback?: number): number | undefined {

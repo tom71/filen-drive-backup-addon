@@ -12,6 +12,7 @@ const restoreTargetEl = document.getElementById("restore-target");
 const restoreDirectoryEl = document.getElementById("restore-directory");
 const restorePreviewBtn = document.getElementById("restore-preview");
 const restoreRunBtn = document.getElementById("restore-run");
+const restoreSelectableEl = document.getElementById("restore-selectable");
 const restorePreviewOutputEl = document.getElementById("restore-preview-output");
 const restoreStatusEl = document.getElementById("restore-status");
 
@@ -75,6 +76,7 @@ restorePreviewBtn.addEventListener("click", async () => {
       return;
     }
 
+    renderRestoreSelectableEntries(data.selectableEntries);
     restorePreviewOutputEl.textContent = renderRestorePreview(data);
   } catch (error) {
     restorePreviewOutputEl.textContent = "Netzwerkfehler: " + error.message;
@@ -97,10 +99,11 @@ restoreRunBtn.addEventListener("click", async () => {
 
   try {
     const restoreDirectory = String(restoreDirectoryEl.value || "").trim();
+    const selectedEntries = getSelectedRestoreEntries();
     const res = await fetch("api/restore-now", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ backupLocation, restoreDirectory }),
+      body: JSON.stringify({ backupLocation, restoreDirectory, selectedEntries }),
     });
     const data = await res.json();
 
@@ -245,6 +248,7 @@ function renderRestoreTargets(items) {
     restoreTargetEl.disabled = true;
     restorePreviewBtn.disabled = true;
     restoreRunBtn.disabled = true;
+    renderRestoreSelectableEntries([]);
     return;
   }
 
@@ -270,6 +274,59 @@ function renderRestoreTargets(items) {
 
 function getSelectedRestoreLocation() {
   return String(restoreTargetEl.value || "").trim();
+}
+
+function getSelectedRestoreEntries() {
+  if (!restoreSelectableEl) {
+    return [];
+  }
+
+  return Array.from(restoreSelectableEl.querySelectorAll('input[type="checkbox"]:checked'))
+    .map((checkbox) => String(checkbox.value || "").trim())
+    .filter((entry) => entry.length > 0);
+}
+
+function renderRestoreSelectableEntries(entries) {
+  if (!restoreSelectableEl) {
+    return;
+  }
+
+  const validEntries = Array.isArray(entries) ? entries.filter((entry) => typeof entry === "string" && entry.trim().length > 0) : [];
+
+  restoreSelectableEl.innerHTML = "";
+
+  if (validEntries.length === 0) {
+    restoreSelectableEl.className = "restore-selectable hidden";
+    return;
+  }
+
+  restoreSelectableEl.className = "restore-selectable";
+
+  const title = document.createElement("p");
+  title.className = "hint";
+  title.textContent = "Optional: einzelne Bereiche auswaehlen. Ohne Auswahl wird das komplette Backup wiederhergestellt.";
+
+  const grid = document.createElement("div");
+  grid.className = "restore-selectable-grid";
+
+  for (const entry of validEntries) {
+    const label = document.createElement("label");
+    label.className = "restore-option";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.value = entry;
+
+    const text = document.createElement("span");
+    text.textContent = entry;
+
+    label.appendChild(checkbox);
+    label.appendChild(text);
+    grid.appendChild(label);
+  }
+
+  restoreSelectableEl.appendChild(title);
+  restoreSelectableEl.appendChild(grid);
 }
 
 async function loadSchedulerStatus() {
@@ -383,7 +440,10 @@ function startRestorePolling() {
         const result = data.result || {};
         setRestoreStatus(
           "done",
-          `Restore abgeschlossen\nQuelle: ${data.backupLocation || "-"}\nZiel: ${result.restoredTo || data.restoreDirectory || "-"}`,
+          `Restore abgeschlossen\nQuelle: ${data.backupLocation || "-"}\nZiel: ${result.restoredTo || data.restoreDirectory || "-"}` +
+            (Array.isArray(result.selectedEntries) && result.selectedEntries.length > 0
+              ? `\nAuswahl: ${result.selectedEntries.join(", ")}`
+              : "\nAuswahl: komplettes Backup"),
         );
       } else if (data.status === "error") {
         setRestoreStatus("error", "Restore fehlgeschlagen: " + (data.error || "Unbekannter Fehler"));

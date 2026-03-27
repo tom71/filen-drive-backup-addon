@@ -66,5 +66,7 @@ export interface RestoreResult {
   downloadedArchivePath: string;
   decryptedArchivePath: string;
   restoredTo: string;
+  restoredEntryCount?: number;
+  selectedEntries?: string[];
   restoredAt: string;
 }

@@ -74,6 +74,8 @@ Der Restore nutzt denselben Filen-Provider wie der Backup-Upload:
 2. Die Datei wird lokal entschluesselt.
 3. Das tar.gz-Archiv wird in das konfigurierte Restore-Ziel entpackt.
 
+In der UI kann vor dem Restore eine Inhaltsvorschau geladen werden. Danach lassen sich einzelne Top-Level-Bereiche wie `homeassistant`, `ssl` oder `share` gezielt auswaehlen, statt immer das komplette Backup zu entpacken.
+
 CLI-Beispiele:
 
 ```bash
@@ -197,6 +199,8 @@ Dabei wird automatisch eine lokale Test-Konfiguration unter `.tmp-ui-test/option
 - `filen_auth_state_path` unter `.tmp-ui-test/filen-auth-state.json`
 
 Die UI ist danach im Devcontainer ueber Port `8099` erreichbar.
+
+Der Scheduler-Status wird neben der Konfiguration persistent gespeichert. In Home Assistant liegt dieser Zustand damit ebenfalls unter `/data/` und bleibt ueber Add-on-Neustarts hinweg erhalten.
 
 ## Home Assistant Add-on Nutzung
 

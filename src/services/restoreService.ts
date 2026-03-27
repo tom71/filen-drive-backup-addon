@@ -13,7 +13,11 @@ export class RestoreService {
 
   constructor(private readonly config: AppConfig) {}
 
-  async runRestore(backupLocation: string, restoreDirectory?: string): Promise<RestoreResult> {
+  async runRestore(
+    backupLocation: string,
+    restoreDirectory?: string,
+    selectedEntries?: string[],
+  ): Promise<RestoreResult> {
     const effectiveRestoreDirectory = restoreDirectory ?? this.config.restoreDirectory;
 
     if (!effectiveRestoreDirectory) {
@@ -29,13 +33,18 @@ export class RestoreService {
     try {
       await storageProvider.downloadFile(backupLocation, downloadedPath);
       await this.encryptionService.decryptFile(downloadedPath, decryptedPath, this.config.encryption.passphrase);
-      await this.archiveService.extractTarGz(decryptedPath, effectiveRestoreDirectory);
+      const archiveEntries = await this.archiveService.listTarGzEntries(decryptedPath);
+      const resolvedSelectedEntries = resolveSelectedArchiveEntries(archiveEntries, selectedEntries);
+
+      await this.archiveService.extractTarGz(decryptedPath, effectiveRestoreDirectory, resolvedSelectedEntries);
 
       return {
         backupLocation,
         downloadedArchivePath: downloadedPath,
         decryptedArchivePath: decryptedPath,
         restoredTo: effectiveRestoreDirectory,
+        restoredEntryCount: resolvedSelectedEntries?.length,
+        selectedEntries: summarizeSelectedRoots(resolvedSelectedEntries),
         restoredAt: new Date().toISOString(),
       };
     } finally {
@@ -54,6 +63,7 @@ export class RestoreService {
     totalEntries: number;
     entriesPreview: string[];
     topLevelEntries: string[];
+    selectableEntries: string[];
   }> {
     const { downloadedPath, decryptedPath } = this.createTempPaths();
     const storageProvider = this.createStorageProvider();
@@ -68,6 +78,7 @@ export class RestoreService {
         totalEntries: entries.length,
         entriesPreview: entries.slice(0, Math.max(1, maxEntries)),
         topLevelEntries: summarizeTopLevelEntries(entries),
+        selectableEntries: summarizeTopLevelEntries(entries),
       };
     } finally {
       if (existsSync(downloadedPath)) {
@@ -98,11 +109,39 @@ export class RestoreService {
   }
 }
 
+function resolveSelectedArchiveEntries(archiveEntries: string[], selectedEntries?: string[]): string[] | undefined {
+  if (!Array.isArray(selectedEntries) || selectedEntries.length === 0) {
+    return undefined;
+  }
+
+  const normalizedSelections = selectedEntries
+    .map((entry) => normalizeArchiveEntry(entry))
+    .filter((entry, index, array) => entry.length > 0 && array.indexOf(entry) === index);
+
+  if (normalizedSelections.length === 0) {
+    return undefined;
+  }
+
+  const resolved = archiveEntries.filter((entry) => {
+    const normalizedEntry = normalizeArchiveEntry(entry);
+
+    return normalizedSelections.some(
+      (selection) => normalizedEntry === selection || normalizedEntry.startsWith(`${selection}/`),
+    );
+  });
+
+  if (resolved.length === 0) {
+    throw new Error("Keine gueltigen Archivpfade fuer das selektive Restore gefunden.");
+  }
+
+  return resolved;
+}
+
 function summarizeTopLevelEntries(entries: string[]): string[] {
   const seen = new Set<string>();
 
   for (const entry of entries) {
-    const normalized = entry.replace(/^\.\//, "");
+    const normalized = normalizeArchiveEntry(entry);
     const topLevel = normalized.split("/")[0]?.trim();
 
     if (topLevel) {
@@ -111,4 +150,16 @@ function summarizeTopLevelEntries(entries: string[]): string[] {
   }
 
   return Array.from(seen).sort((a, b) => a.localeCompare(b));
+}
+
+function summarizeSelectedRoots(entries: string[] | undefined): string[] | undefined {
+  if (!entries || entries.length === 0) {
+    return undefined;
+  }
+
+  return summarizeTopLevelEntries(entries);
+}
+
+function normalizeArchiveEntry(entry: string): string {
+  return entry.replace(/^\.\//, "").replace(/\/+$|\s+$/g, "").trim();
 }
