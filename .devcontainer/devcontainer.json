@@ -4,6 +4,9 @@
     "dockerfile": "Dockerfile",
     "context": ".."
   },
+  "mounts": [
+    "source=${localWorkspaceFolder}/backup,target=/backup,type=bind"
+  ],
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   "forwardPorts": [8099],
   "portsAttributes": {

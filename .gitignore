@@ -10,3 +10,5 @@ filen_drive_backup/config/config.json
 **/config.json
 !config/config.example.json
 !**/config.example.json
+backup/*
+!backup/.gitkeep

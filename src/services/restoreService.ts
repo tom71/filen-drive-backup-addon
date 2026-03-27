@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, renameSync, rmSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, renameSync, rmSync } from "node:fs";
 import { basename, join } from "node:path";
 
 import { AppConfig, RestoreResult } from "../types/config";
@@ -112,7 +112,7 @@ export class RestoreService {
 
       const placedFileName = buildPlacedBackupName(backupLocation);
       const placedPath = ensureUniquePath(destinationDirectory, placedFileName);
-      renameSync(decryptedPath, placedPath);
+      moveFileCrossDeviceSafe(decryptedPath, placedPath);
 
       return {
         backupLocation,
@@ -224,4 +224,22 @@ function ensureUniquePath(directory: string, fileName: string): string {
 
   const suffix = new Date().toISOString().replace(/[:.]/g, "-");
   return join(directory, `${fileName}.${suffix}`);
+}
+
+function moveFileCrossDeviceSafe(sourcePath: string, destinationPath: string): void {
+  try {
+    renameSync(sourcePath, destinationPath);
+  } catch (error: unknown) {
+    const code =
+      typeof error === "object" && error !== null && "code" in error
+        ? String((error as { code?: unknown }).code ?? "")
+        : "";
+
+    if (code !== "EXDEV") {
+      throw error;
+    }
+
+    copyFileSync(sourcePath, destinationPath);
+    rmSync(sourcePath, { force: true });
+  }
 }
