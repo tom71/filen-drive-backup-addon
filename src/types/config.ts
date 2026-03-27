@@ -20,7 +20,7 @@ export interface FilenAuthState {
   publicKey: string;
   privateKey: string;
   baseFolderUUID: string;
-  authVersion: 1 | 2 | 3;
+  authVersion?: 1 | 2 | 3;
   userId: number;
   persistedAt: string;
 }

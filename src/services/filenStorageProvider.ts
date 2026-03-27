@@ -117,12 +117,33 @@ export class FilenStorageProvider implements StorageProvider {
       const storedState = this.tryLoadAuthState();
 
       if (storedState) {
-        const sdkFromState = new FilenSDK({
-          ...storedState,
+        // AuthVersion darf nur 1 oder 2 sein
+        const {
+          apiKey,
+          masterKeys,
+          publicKey,
+          privateKey,
+          baseFolderUUID,
+          authVersion,
+          userId,
+          persistedAt
+        } = storedState;
+        const sdkConfig: any = {
+          apiKey,
+          masterKeys,
+          publicKey,
+          privateKey,
+          baseFolderUUID,
+          userId,
+          persistedAt,
           metadataCache: true,
           connectToSocket: false,
           tmpPath: "/tmp/filen-sdk",
-        });
+        };
+        if (authVersion === 1 || authVersion === 2) {
+          sdkConfig.authVersion = authVersion;
+        }
+        const sdkFromState = new FilenSDK(sdkConfig);
 
         if (await this.isSdkSessionUsable(sdkFromState)) {
           return {
