@@ -258,6 +258,13 @@ select {
   word-break: break-all;
 }
 
+.item-actions {
+  margin-top: 0.55rem;
+  display: flex;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
 .hint {
   color: var(--muted);
   line-height: 1.5;

@@ -1,5 +1,5 @@
-import { existsSync, mkdirSync, rmSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, mkdirSync, renameSync, rmSync } from "node:fs";
+import { basename, join } from "node:path";
 
 import { AppConfig, RestoreResult } from "../types/config";
 import { ArchiveService } from "./archiveService";
@@ -91,6 +91,46 @@ export class RestoreService {
     }
   }
 
+  async placeBackupInDirectory(
+    backupLocation: string,
+    destinationDirectory = "/backup",
+  ): Promise<{
+    backupLocation: string;
+    placedPath: string;
+    placedFileName: string;
+    placedAt: string;
+  }> {
+    mkdirSync(this.config.workingDirectory, { recursive: true });
+    mkdirSync(destinationDirectory, { recursive: true });
+
+    const { downloadedPath, decryptedPath } = this.createTempPaths();
+    const storageProvider = this.createStorageProvider();
+
+    try {
+      await storageProvider.downloadFile(backupLocation, downloadedPath);
+      await this.encryptionService.decryptFile(downloadedPath, decryptedPath, this.config.encryption.passphrase);
+
+      const placedFileName = buildPlacedBackupName(backupLocation);
+      const placedPath = ensureUniquePath(destinationDirectory, placedFileName);
+      renameSync(decryptedPath, placedPath);
+
+      return {
+        backupLocation,
+        placedPath,
+        placedFileName: basename(placedPath),
+        placedAt: new Date().toISOString(),
+      };
+    } finally {
+      if (existsSync(downloadedPath)) {
+        rmSync(downloadedPath, { force: true });
+      }
+
+      if (existsSync(decryptedPath)) {
+        rmSync(decryptedPath, { force: true });
+      }
+    }
+  }
+
   private createStorageProvider(): StorageProvider {
     if (!this.config.storage.filen) {
       throw new Error("Filen-Konfiguration fehlt.");
@@ -162,4 +202,26 @@ function summarizeSelectedRoots(entries: string[] | undefined): string[] | undef
 
 function normalizeArchiveEntry(entry: string): string {
   return entry.replace(/^\.\//, "").replace(/\/+$|\s+$/g, "").trim();
+}
+
+function buildPlacedBackupName(backupLocation: string): string {
+  const raw = backupLocation.startsWith("filen:") ? backupLocation.slice("filen:".length) : backupLocation;
+  const fileName = basename(raw.trim()) || `filen-backup-${Date.now()}.enc`;
+
+  if (fileName.endsWith(".enc")) {
+    return fileName.slice(0, -4);
+  }
+
+  return fileName;
+}
+
+function ensureUniquePath(directory: string, fileName: string): string {
+  let candidate = join(directory, fileName);
+
+  if (!existsSync(candidate)) {
+    return candidate;
+  }
+
+  const suffix = new Date().toISOString().replace(/[:.]/g, "-");
+  return join(directory, `${fileName}.${suffix}`);
 }

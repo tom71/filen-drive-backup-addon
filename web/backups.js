@@ -15,6 +15,7 @@ const restoreRunBtn = document.getElementById("restore-run");
 const restoreSelectableEl = document.getElementById("restore-selectable");
 const restorePreviewOutputEl = document.getElementById("restore-preview-output");
 const restoreStatusEl = document.getElementById("restore-status");
+const fileActionStatusEl = document.getElementById("file-action-status");
 
 let backupNowPollInterval = null;
 let schedulerPollInterval = null;
@@ -229,11 +230,95 @@ async function loadBackups() {
 
     node.appendChild(name);
     node.appendChild(details);
+
+    const itemActions = document.createElement("div");
+    itemActions.className = "item-actions";
+
+    const downloadBtn = document.createElement("button");
+    downloadBtn.type = "button";
+    downloadBtn.className = "btn ghost";
+    downloadBtn.textContent = "Download";
+    downloadBtn.addEventListener("click", () => {
+      const location = getBackupLocation(item);
+
+      if (!location) {
+        setFileActionStatus("error", "Fehler: Backup-Pfad fehlt.");
+        return;
+      }
+
+      setFileActionStatus("running", `Download gestartet: ${item.name}`);
+      window.location.href = `api/backup-download?location=${encodeURIComponent(location)}`;
+      setTimeout(() => {
+        setFileActionStatus("done", `Download angefordert: ${item.name}`);
+      }, 400);
+    });
+
+    const placeBtn = document.createElement("button");
+    placeBtn.type = "button";
+    placeBtn.className = "btn ghost";
+    placeBtn.textContent = "Nach /backup in HA";
+    placeBtn.addEventListener("click", async () => {
+      const location = getBackupLocation(item);
+
+      if (!location) {
+        setFileActionStatus("error", "Fehler: Backup-Pfad fehlt.");
+        return;
+      }
+
+      downloadBtn.disabled = true;
+      placeBtn.disabled = true;
+      setFileActionStatus("running", `Lege Backup in /backup ab: ${item.name}`);
+
+      try {
+        const res = await fetch("api/place-backup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ backupLocation: location }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "Backup konnte nicht nach /backup gelegt werden.");
+        }
+
+        setFileActionStatus(
+          "done",
+          `In /backup abgelegt: ${data.placedFileName || item.name}${data.placedPath ? `\nPfad: ${data.placedPath}` : ""}`,
+        );
+      } catch (error) {
+        setFileActionStatus("error", error.message || "Unbekannter Fehler beim Platzieren.");
+      } finally {
+        downloadBtn.disabled = false;
+        placeBtn.disabled = false;
+      }
+    });
+
+    itemActions.appendChild(downloadBtn);
+    itemActions.appendChild(placeBtn);
+    node.appendChild(itemActions);
+
     if (remotePath.textContent) {
       node.appendChild(remotePath);
     }
     listEl.appendChild(node);
   }
+}
+
+function getBackupLocation(item) {
+  if (item && typeof item.path === "string" && item.path.trim().length > 0) {
+    return `filen:${item.path}`;
+  }
+
+  return "";
+}
+
+function setFileActionStatus(kind, message) {
+  if (!fileActionStatusEl) {
+    return;
+  }
+
+  fileActionStatusEl.className = `backup-now-status ${kind}`;
+  fileActionStatusEl.textContent = message;
 }
 
 function renderRestoreTargets(items) {

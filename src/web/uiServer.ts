@@ -1,6 +1,6 @@
 import { createServer, IncomingMessage, ServerResponse } from "node:http";
-import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
-import { dirname, extname, join, resolve } from "node:path";
+import { createReadStream, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { basename, dirname, extname, join, resolve } from "node:path";
 
 import { loadConfig } from "../config";
 import { BackupService } from "../services/backupService";
@@ -192,6 +192,38 @@ async function routeRequest(req: IncomingMessage, res: ServerResponse): Promise<
     return;
   }
 
+  if (method === "GET" && path === "/api/backup-download") {
+    const backupLocation = getBackupLocationFromQuery(url);
+
+    if (!backupLocation) {
+      sendJson(res, 400, { error: "location fehlt." });
+      return;
+    }
+
+    await streamBackupDownload(backupLocation, res);
+    return;
+  }
+
+  if (method === "POST" && path === "/api/place-backup") {
+    const payload = await readJsonBody(req);
+    const backupLocation = String(payload.backupLocation ?? "").trim();
+
+    if (!backupLocation) {
+      sendJson(res, 400, { error: "backupLocation fehlt." });
+      return;
+    }
+
+    const config = loadConfig(getOptionsPath());
+    const restoreService = new RestoreService(config);
+    const placement = await restoreService.placeBackupInDirectory(backupLocation, "/backup");
+
+    sendJson(res, 200, {
+      message: "Backup wurde in /backup abgelegt.",
+      ...placement,
+    });
+    return;
+  }
+
   if (method === "GET" && path === "/api/scheduler-status") {
     sendJson(res, 200, getSchedulerStatusPayload());
     return;
@@ -364,6 +396,8 @@ function normalizeRoutePath(rawUrl: string): string {
     "/api/options",
     "/api/setup-filen-auth",
     "/api/backups",
+    "/api/backup-download",
+    "/api/place-backup",
     "/api/scheduler-status",
     "/api/backup-now",
     "/api/backup-status",
@@ -612,6 +646,93 @@ function redirect(res: ServerResponse, location: string): void {
   res.statusCode = 302;
   res.setHeader("Location", location);
   res.end();
+}
+
+function getBackupLocationFromQuery(rawUrl: string): string {
+  const parsed = new URL(rawUrl, "http://localhost");
+  return parsed.searchParams.get("location")?.trim() ?? "";
+}
+
+async function streamBackupDownload(backupLocation: string, res: ServerResponse): Promise<void> {
+  const config = loadConfig(getOptionsPath());
+
+  if (!config.storage.filen) {
+    sendJson(res, 400, { error: "Filen ist nicht vollstaendig konfiguriert." });
+    return;
+  }
+
+  const provider = new FilenStorageProvider(config.storage.filen);
+  const tempFileName = `download-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.enc`;
+  const tempPath = join(config.workingDirectory, tempFileName);
+
+  try {
+    await provider.downloadFile(backupLocation, tempPath);
+
+    const downloadName = deriveDownloadFileName(backupLocation);
+    res.statusCode = 200;
+    res.setHeader("Content-Type", "application/octet-stream");
+    res.setHeader("Content-Disposition", `attachment; filename=\"${downloadName}\"`);
+
+    await new Promise<void>((resolveDownload, rejectDownload) => {
+      const stream = createReadStream(tempPath);
+      let settled = false;
+
+      const settle = (kind: "resolve" | "reject", error?: Error) => {
+        if (settled) {
+          return;
+        }
+
+        settled = true;
+        if (kind === "resolve") {
+          resolveDownload();
+        } else {
+          rejectDownload(error ?? new Error("Download abgebrochen."));
+        }
+      };
+
+      const cleanup = () => {
+        if (existsSync(tempPath)) {
+          rmSync(tempPath, { force: true });
+        }
+      };
+
+      stream.on("error", (error) => {
+        cleanup();
+        settle("reject", error as Error);
+      });
+
+      res.on("finish", () => {
+        cleanup();
+        settle("resolve");
+      });
+
+      res.on("close", () => {
+        cleanup();
+        settle("resolve");
+      });
+      stream.pipe(res);
+    });
+  } catch (error: unknown) {
+    if (!res.headersSent) {
+      sendJson(res, 500, {
+        error: error instanceof Error ? error.message : "Backup-Datei konnte nicht heruntergeladen werden.",
+      });
+      return;
+    }
+
+    res.destroy();
+  }
+}
+
+function deriveDownloadFileName(backupLocation: string): string {
+  const raw = backupLocation.startsWith("filen:") ? backupLocation.slice("filen:".length) : backupLocation;
+  const name = basename(raw.trim());
+
+  if (!name || name.length === 0) {
+    return `filen-backup-${Date.now()}.enc`;
+  }
+
+  return name.replace(/[\r\n\t"']/g, "_");
 }
 
 function initializeScheduler(): void {
