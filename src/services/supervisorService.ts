@@ -1,3 +1,12 @@
+// Löst ein ha backups reload aus
+export async function reloadBackups(): Promise<void> {
+  try {
+    await supervisorRequest("POST", "/backups/reload");
+    logInfo("supervisor", "Backups erfolgreich neu geladen (ha backups reload)");
+  } catch (err) {
+    logError("supervisor", `Backups reload fehlgeschlagen: ${err instanceof Error ? err.message : String(err)}`);
+  }
+}
 import { request } from "node:http";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";

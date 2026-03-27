@@ -217,8 +217,18 @@ async function routeRequest(req: IncomingMessage, res: ServerResponse): Promise<
     const restoreService = new RestoreService(config);
     const placement = await restoreService.placeBackupInDirectory(backupLocation, "/backup");
 
+    // Nach dem Platzieren: Supervisor-Reload, damit das Backup sofort sichtbar wird
+    try {
+      const { reloadBackups, isSupervisorAvailable } = await import("../services/supervisorService");
+      if (isSupervisorAvailable()) {
+        await reloadBackups();
+      }
+    } catch (err) {
+      // Fehler beim Reload sind nicht kritisch für den Place-Flow
+    }
+
     sendJson(res, 200, {
-      message: "Backup wurde in /backup abgelegt.",
+      message: "Backup wurde in /backup abgelegt und Home Assistant Backups neu geladen.",
       ...placement,
     });
     return;

@@ -85,6 +85,7 @@ restorePreviewBtn.addEventListener("click", async () => {
     restorePreviewBtn.disabled = false;
   }
 });
+const restoreFullCheckbox = document.getElementById("restore-full-checkbox");
 
 restoreRunBtn.addEventListener("click", async () => {
   const backupLocation = getSelectedRestoreLocation();
@@ -100,7 +101,11 @@ restoreRunBtn.addEventListener("click", async () => {
 
   try {
     const restoreDirectory = String(restoreDirectoryEl.value || "").trim();
-    const selectedEntries = getSelectedRestoreEntries();
+    let selectedEntries = getSelectedRestoreEntries();
+    // Wenn Full-Checkbox aktiv, keine Einzelauswahl übergeben
+    if (restoreFullCheckbox && restoreFullCheckbox.checked) {
+      selectedEntries = undefined;
+    }
     const res = await fetch("api/restore-now", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

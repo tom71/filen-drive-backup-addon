@@ -1,3 +1,44 @@
+import { createReadStream } from "node:fs";
+import * as tar from "tar-stream";
+// Extrahiert backup.json aus einem tar.gz-Archiv (decryptedPath)
+export async function extractBackupJsonFromTarGz(tarGzPath: string): Promise<any> {
+  return new Promise((resolve, reject) => {
+    const extract = tar.extract();
+    let found = false;
+    let jsonStr = "";
+
+    extract.on("entry", (header, stream, next) => {
+      if (header.name === "backup.json" || header.name === "./backup.json") {
+        found = true;
+        stream.on("data", (chunk) => {
+          jsonStr += chunk.toString();
+        });
+        stream.on("end", () => next());
+      } else {
+        stream.resume();
+        stream.on("end", () => next());
+      }
+    });
+    extract.on("finish", () => {
+      if (found) {
+        try {
+          resolve(JSON.parse(jsonStr));
+        } catch (err) {
+          reject(new Error("backup.json ist keine gültige JSON-Datei."));
+        }
+      } else {
+        reject(new Error("backup.json nicht im Archiv gefunden."));
+      }
+    });
+    extract.on("error", reject);
+
+    // Gunzip-Stream
+    const zlib = require("zlib");
+    createReadStream(tarGzPath)
+      .pipe(zlib.createGunzip())
+      .pipe(extract);
+  });
+}
 import { copyFileSync, existsSync, mkdirSync, rmSync } from "node:fs";
 import { basename, join } from "node:path";
 
@@ -64,6 +105,7 @@ export class RestoreService {
     entriesPreview: string[];
     topLevelEntries: string[];
     selectableEntries: string[];
+    backupJson?: any;
   }> {
     const { downloadedPath, decryptedPath } = this.createTempPaths();
     const storageProvider = this.createStorageProvider();
@@ -71,7 +113,22 @@ export class RestoreService {
     try {
       await storageProvider.downloadFile(backupLocation, downloadedPath);
       await this.encryptionService.decryptFile(downloadedPath, decryptedPath, this.config.encryption.passphrase);
-      const entries = await this.archiveService.listTarGzEntries(decryptedPath);
+
+      // backup.json extrahieren
+      let backupJson: any = undefined;
+      try {
+        backupJson = await extractBackupJsonFromTarGz(decryptedPath);
+      } catch (err) {
+        // backup.json optional, Fehler ignorieren
+      }
+
+      let entries: string[] = [];
+      if (backupJson && Array.isArray(backupJson.folders)) {
+        entries = backupJson.folders.map((f: any) => f.slug || f.name || String(f));
+      } else {
+        // Fallback: alle Einträge listen
+        entries = await this.archiveService.listTarGzEntries(decryptedPath);
+      }
 
       return {
         backupLocation,
@@ -79,12 +136,12 @@ export class RestoreService {
         entriesPreview: entries.slice(0, Math.max(1, maxEntries)),
         topLevelEntries: summarizeTopLevelEntries(entries),
         selectableEntries: summarizeTopLevelEntries(entries),
+        backupJson,
       };
     } finally {
       if (existsSync(downloadedPath)) {
         rmSync(downloadedPath, { force: true });
       }
-
       if (existsSync(decryptedPath)) {
         rmSync(decryptedPath, { force: true });
       }
