@@ -324,12 +324,24 @@ async function routeRequest(req: IncomingMessage, res: ServerResponse): Promise<
   }
 
   if (method === "GET" && path === "/info") {
+    // Version und Releasedatum aus config.yaml lesen
+    let version = "0.1.26";
+    let released = "27.03.2026";
+    try {
+      const configYaml = require("fs").readFileSync("config.yaml", "utf8");
+      const versionMatch = configYaml.match(/version:\s*([\w.\-]+)/);
+      if (versionMatch) version = versionMatch[1];
+      // Releasedatum: Fallback auf aktuelles Datum, oder aus Git/anderen Quellen ergänzen
+      released = new Date().toLocaleDateString("de-DE");
+    } catch {}
     sendJson(res, 200, {
       name: "Filen Drive Backup",
       slug: "filen_drive_backup",
       ui: "./",
       documentation: "https://github.com/tom71/filen-drive-backup-addon/blob/main/README.md",
       issue_tracker: "https://github.com/tom71/filen-drive-backup-addon/issues",
+      version,
+      released,
     });
     return;
   }

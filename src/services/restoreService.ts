@@ -1,4 +1,4 @@
-import { copyFileSync, existsSync, mkdirSync, renameSync, rmSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, rmSync } from "node:fs";
 import { basename, join } from "node:path";
 
 import { AppConfig, RestoreResult } from "../types/config";
@@ -227,19 +227,8 @@ function ensureUniquePath(directory: string, fileName: string): string {
 }
 
 function moveFileCrossDeviceSafe(sourcePath: string, destinationPath: string): void {
-  try {
-    renameSync(sourcePath, destinationPath);
-  } catch (error: unknown) {
-    const code =
-      typeof error === "object" && error !== null && "code" in error
-        ? String((error as { code?: unknown }).code ?? "")
-        : "";
-
-    if (code !== "EXDEV") {
-      throw error;
-    }
-
-    copyFileSync(sourcePath, destinationPath);
-    rmSync(sourcePath, { force: true });
-  }
+  // In Add-on deployments /tmp and /backup are often different filesystems.
+  // Copy + remove avoids EXDEV errors from cross-device rename operations.
+  copyFileSync(sourcePath, destinationPath);
+  rmSync(sourcePath, { force: true });
 }

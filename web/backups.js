@@ -706,3 +706,19 @@ function formatRelativeTime(date) {
   const days = Math.floor(hours / 24);
   return `vor ${days} d`;
 }
+
+// Footer-Version dynamisch setzen
+fetch("/info")
+  .then((res) => res.json())
+  .then((info) => {
+    const footer = document.getElementById("footer-version");
+    if (footer && info) {
+      const version = info.version || "0.1.26";
+      const released = info.released || "27.03.2026";
+      footer.textContent = `Version ${version} · Release: ${released}`;
+    }
+  })
+  .catch(() => {
+    const footer = document.getElementById("footer-version");
+    if (footer) footer.textContent = "Version unbekannt";
+  });

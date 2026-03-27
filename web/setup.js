@@ -100,3 +100,19 @@ function setStatus(message, isError = false) {
   statusEl.classList.toggle("bad", isError);
   statusEl.classList.toggle("good", !isError);
 }
+
+// Footer-Version dynamisch setzen
+fetch("/info")
+  .then((res) => res.json())
+  .then((info) => {
+    const footer = document.getElementById("footer-version");
+    if (footer && info) {
+      const version = info.version || "0.1.26";
+      const released = info.released || "27.03.2026";
+      footer.textContent = `Version ${version} · Release: ${released}`;
+    }
+  })
+  .catch(() => {
+    const footer = document.getElementById("footer-version");
+    if (footer) footer.textContent = "Version unbekannt";
+  });

@@ -4,6 +4,8 @@
     "dockerfile": "Dockerfile",
     "context": ".."
   },
+  "initializeCommand": "mkdir -p ${localWorkspaceFolder}/backup",
+  "overrideCommand": true,
   "mounts": [
     "source=${localWorkspaceFolder}/backup,target=/backup,type=bind"
   ],
