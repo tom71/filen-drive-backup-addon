@@ -12,3 +12,4 @@ filen_drive_backup/config/config.json
 !**/config.example.json
 backup/*
 !backup/.gitkeep
+config/scheduler-state.json
