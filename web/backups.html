@@ -59,36 +59,7 @@
         <div id="backup-list" class="list"></div>
       </section>
 
-      <section class="panel span-2">
-        <div class="panel-head">
-          <h2>Restore</h2>
-        </div>
 
-        <div class="restore-grid">
-          <label>
-            Backup
-            <select id="restore-target"></select>
-          </label>
-          <label>
-            Restore-Ziel (optional)
-            <input id="restore-directory" type="text" placeholder="/restore" />
-          </label>
-          <label style="grid-column: span 2; margin-top: 0.5em;">
-            <input id="restore-full-checkbox" type="checkbox" checked />
-            Komplettes Backup wiederherstellen (Full Restore)
-          </label>
-        </div>
-
-        <div class="actions">
-          <button id="restore-preview" class="btn ghost">Inhalt anzeigen</button>
-          <button id="restore-run" class="btn primary">Restore starten</button>
-        </div>
-
-        <div id="restore-selectable" class="restore-selectable hidden"></div>
-
-        <pre id="restore-preview-output" class="status">Waehle ein Backup fuer die Vorschau.</pre>
-        <div id="restore-status" class="backup-now-status hidden"></div>
-      </section>
     </main>
 
     <script src="backups.js"></script>
